@@ -1,0 +1,101 @@
+{
+  "case_id": "001",
+  "case_title": "滷肉飯照片辨識",
+  "exclusions": [
+    {
+      "name": "原味燉品屋",
+      "reason": "使用者確認不符：照片中的滷肉飯更黑亮；原味燉品屋的版本有些許瘦肉且沒有香菇。",
+      "basis": "user_feedback",
+      "reusable_for_new_cases": false
+    },
+    {
+      "name": "國榮肉燥飯",
+      "reason": "使用者確認不是照片中的店家。",
+      "basis": "user_feedback",
+      "reusable_for_new_cases": false
+    },
+    {
+      "name": "福泰飯桌",
+      "reason": "使用者確認不是照片中的店家。",
+      "basis": "user_feedback",
+      "reusable_for_new_cases": false
+    },
+    {
+      "name": "魯肉飯香（金乓）",
+      "reason": "先前調查確認已歇業；本案預設尋找目前仍營業的店家。",
+      "basis": "closed_business_and_current_status_rule",
+      "reusable_for_new_cases": false
+    },
+    {
+      "name": "魯肉昌",
+      "reason": "使用者表示第一眼就排除；近期可見餐具的碗色與照片不符。餐具通常少有更換，列為強烈矛盾。",
+      "basis": "user_feedback",
+      "mismatch_dimension": "dishware_color",
+      "reusable_for_new_cases": false
+    },
+    {
+      "name": "大灣無骨鴨肉羹",
+      "reason": "使用者表示第一眼就排除；近期可見餐具的碗色與照片不符。餐具通常少有更換，列為強烈矛盾。",
+      "basis": "user_feedback",
+      "mismatch_dimension": "dishware_color",
+      "reusable_for_new_cases": false
+    },
+    {
+      "basis": "recent_google_photo",
+      "name": "彬｜國華街肉燥飯",
+      "mismatch_dimension": "dishware_color,table_surface",
+      "reusable_for_new_cases": false,
+      "reason": "近期 Google 評論照片（2026 年 6 月）顯示飯碗為藍白花碗、湯器皿偏金屬色，桌面不鏽鋼，與原圖黑色飯碗／湯碗和灰木紋桌不符。"
+    },
+    {
+      "basis": "recent_google_photo",
+      "name": "阿和肉燥飯",
+      "mismatch_dimension": "dishware_color",
+      "reusable_for_new_cases": false,
+      "reason": "近期 Google 評論照片（2026 年 4 月）顯示內用菜色使用白色碗盤，與原圖兩個黑碗不符。"
+    },
+    {
+      "basis": "recent_google_photo",
+      "name": "後甲圓環-無名虱目魚肉燥飯",
+      "mismatch_dimension": "dishware_color",
+      "reusable_for_new_cases": false,
+      "reason": "近期 Google 照片（2026 年 4 月）所見碗盤以紅色和藍白花色為主，與原圖的黑色飯碗和湯碗不符。"
+    },
+    {
+      "basis": "recent_google_photo",
+      "name": "黑記鮮魚湯",
+      "mismatch_dimension": "restaurant_environment",
+      "reusable_for_new_cases": false,
+      "reason": "近期 Google 照片（2026 年 2 月）顯示騎樓木桌與自行車旁的開放用餐區，與原圖室內磁磚牆、風扇及灰木紋桌環境不符。"
+    },
+    {
+      "basis": "recent_google_photo",
+      "name": "五木鮮魚店",
+      "mismatch_dimension": "dishware_color,restaurant_environment",
+      "reusable_for_new_cases": false,
+      "reason": "近期 Google 餐點照片（2026 年 3 月）顯示湯碗與肉燥飯使用白色器皿，店內呈開放式廚房環境，均與原圖黑色碗和室內磁磚牆背景不符。"
+    },
+    {
+      "basis": "recent_google_photo",
+      "reason": "近期 Google 照片（2026 年 6 月）肉燥飯與魚皮／湯品確有部分相似，但飯碗及湯碗皆為白色，店內座位主要在騎樓，與原圖黑色器皿及室內環境不符。",
+      "mismatch_dimension": "dishware_color,restaurant_environment",
+      "name": "江川肉燥飯",
+      "reusable_for_new_cases": false
+    }
+  ],
+  "location_hint_current": "新北市",
+  "location_hint_history": [
+    "先前曾推測台北公館附近或台南；使用者更新本案地點線索為新北"
+  ],
+  "leading_candidate": {
+    "name": "中和一碗小肥羊",
+    "address": "235新北市中和區興南里景新街410巷26號",
+    "status": "高度吻合，待使用者確認",
+    "google_maps_url": "https://www.google.com/maps/place/中和一碗小肥羊/@24.9889331,121.5118622",
+    "evidence": [
+      "Google 地圖近期照片拍攝於2026年7月：黑色飯碗與黑色湯碗、灰木紋桌面與原圖高度相似",
+      "Google 地圖顯示店家營業中；評分4.4、533則評論",
+      "評論及菜單相關資料均指向滷肉飯、羊肉湯、燙青菜；湯肉帶皮與薑絲吻合，原先懷疑鴨肉，現較符合帶皮羊肉湯而非鴨肉"
+    ]
+  }
+}
