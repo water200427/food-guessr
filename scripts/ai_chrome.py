@@ -40,9 +40,17 @@ def check_status(port=DEFAULT_PORT):
 def start_chrome(port=DEFAULT_PORT, headless=False):
     is_running, info = check_status(port)
     if is_running:
-        print(f"[*] AI 專用 Chrome 已經在連接埠 {port} 上運行中。")
-        print(f"    瀏覽器: {info.get('Browser')}")
-        return True
+        ua = info.get('User-Agent', '')
+        currently_headless = 'Headless' in ua
+        if currently_headless and not headless:
+            print(f"[*] 偵測到目前背景正執行『無頭模式 (Headless)』Chrome。")
+            print(f"[*] 正在自動重啟為『實體可見視窗』...")
+            stop_chrome(port)
+            time.sleep(1)
+        else:
+            print(f"[*] AI 專用 Chrome 已經在連接埠 {port} 上運行中。")
+            print(f"    瀏覽器: {info.get('Browser')}")
+            return True
 
     chrome = find_chrome()
     if not chrome:
@@ -54,6 +62,7 @@ def start_chrome(port=DEFAULT_PORT, headless=False):
         chrome,
         f"--remote-debugging-port={port}",
         f"--user-data-dir={profile}",
+        "--remote-allow-origins=*",
         "--no-first-run",
         "--no-default-browser-check",
         "--disable-blink-features=AutomationControlled",
@@ -62,11 +71,14 @@ def start_chrome(port=DEFAULT_PORT, headless=False):
 
     if headless:
         cmd.extend(["--headless=new", "--disable-gpu"])
+    else:
+        # 視窗模式：開啟獨立新視窗並自動打開 Google 首頁
+        cmd.extend(["--new-window", "https://www.google.com"])
 
     print(f"[*] 正在啟動 AI 專用獨立 Chrome...")
     print(f"    連接埠: {port}")
     print(f"    獨立設定檔目錄: {profile}")
-    print(f"    模式: {'背景無頭模式 (Headless)' if headless else '獨立視窗模式'}")
+    print(f"    模式: {'背景無頭模式 (Headless)' if headless else '實體視窗模式 (獨立視窗)'}")
 
     subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
