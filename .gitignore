@@ -1,0 +1,5 @@
+# AI 專用 Chrome 獨立 Profile 與暫存檔
+.ai_chrome_profile/
+*.tmp
+*.log
+scratch/
