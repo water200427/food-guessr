@@ -39,7 +39,7 @@
       "台北市大安區瑞安街（近安東市場旁小公園鐵皮屋）"
     ],
     "google_maps": "https://www.google.com/maps/search/?api=1&query=%E5%B0%8F%E5%85%AC%E5%9C%92%E7%89%9B%E8%82%89%E9%BA%B5",
-    "status_evidence_checked": "近期多位饕客食記（Threads @philipskarnak、Facebook 牛肉麵同好會、部落格）持續更新分享，現址正常營業中",
+    "status_evidence_checked": "近期多位饕客食記（Threads @philipskarnak: https://www.threads.net/@philipskarnak/post/DCCBtYBzHdG 、陳小可的吃喝玩樂: https://www.mecocute.com/xiao-gongyuan/ 、隨裕而安: https://yuann.tw/small-park-beef-noodle/ ）持續更新分享，現址正常營業中",
     "fit": [
       "4 大塊極厚切軟嫩帶筋牛肉塊完全吻合",
       "大量洋蔥熬煮甘甜紅燒湯底、湯中浮出燉軟洋蔥條完全吻合",
@@ -70,10 +70,11 @@
     }
   ],
   "research_sources": [
-    "Threads @philipskarnak 貼文 ID: DCCBtYBzHdG（泰順街／小公園牛肉麵造訪紀錄）",
-    "Facebook 牛肉麵同好會社群討論",
-    "隨裕而安美食部落格：小公園牛肉麵 外國人煮的台灣好味道",
-    "陳小可的吃喝玩樂部落格：小公園牛肉麵搬遷現址實訪紀錄"
+    "Threads @philipskarnak 貼文 ID: DCCBtYBzHdG（泰順街／小公園牛肉麵造訪紀錄）: https://www.threads.net/@philipskarnak/post/DCCBtYBzHdG",
+    "Facebook 牛肉麵同好會社群討論: https://www.facebook.com/groups/beefnoodle/",
+    "隨裕而安美食部落格（小公園牛肉麵 外國人煮的台灣好味道）: https://yuann.tw/small-park-beef-noodle/",
+    "陳小可的吃喝玩樂部落格（小公園牛肉麵搬遷現址實訪紀錄）: https://www.mecocute.com/xiao-gongyuan/",
+    "Google Maps 搜尋地點: https://www.google.com/maps/search/?api=1&query=%E5%B0%8F%E5%85%AC%E5%9C%92%E7%89%9B%E8%82%89%E9%BA%B5"
   ],
   "conclusion": {
     "restaurant": "小公園牛肉麵",
