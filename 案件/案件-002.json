@@ -1,0 +1,96 @@
+{
+  "case_id": "002",
+  "title": "滷肉飯煎蛋照片",
+  "created_date": "2026-10-10",
+  "status": "investigating",
+  "scope": {
+    "default_regions": ["台北", "桃園", "台南"],
+    "target_time": "目前仍營業",
+    "user_region_hint": "台北",
+    "total_price_twd": 125
+  },
+  "observations": {
+    "confirmed": [
+      "白飯上有深褐色、切丁狀且油亮的滷肉",
+      "飯上覆蓋煎蛋，蛋黃破開或流出",
+      "另有方塊狀滷豆腐及一盤滷味小菜",
+      "飯碗、豆腐碗和長方盤為米白或淺奶油色，帶細小深色斑點",
+      "桌面為深棕木紋或仿木紋"
+    ],
+    "uncertain": [
+      "右上小菜盤淡色切片可能是豆干或其他豆製品",
+      "右上盤上的模糊字樣無法辨認"
+    ],
+    "not_visible": ["完整室內環境", "店面外觀", "明確地點資訊"]
+  },
+  "candidates": [
+    {
+      "name": "滷肉飯店 LÓOBAH RESTAURANT",
+      "region": "台北松山",
+      "google_maps": "https://www.google.com/maps/place/%E6%BB%B7%E8%82%89%E9%A3%AF%E5%BA%97/@25.052102,121.54524,17z/",
+      "status_evidence_checked": "Google Maps 2026-10-10 顯示營業中；有 2026 年 4 月店面照片",
+      "fit": ["有滷肉飯、油豆腐、滷蛋；店家強調餐具美學"],
+      "conflicts": ["未證實煎蛋飯及照片中的小菜組合", "未在近期 Google 照片中核對到同款斑點器皿"],
+      "decision": "weak_candidate"
+    },
+    {
+      "name": "西門麵店",
+      "region": "台北萬華",
+      "google_maps": "https://www.google.com/maps/place/%E8%A5%BF%E9%96%80%E9%BA%B5%E5%BA%97/@25.041694,121.505581,17z/",
+      "status_evidence_checked": "Google Maps 2026-10-10 顯示營業中；4.2 星、11,235 則評論；約 2 至 4 個月前有評論",
+      "fit": ["店家有蛋包滷肉飯、滷豆腐及多款滷味", "蛋包滷肉飯曾列價 60 元；125 元總價在搭配豆腐與小菜時可能成立", "Google Maps 目前營業中"],
+      "conflicts": ["使用者指出店家蛋包滷肉飯附酸菜和小黃瓜，目標照片沒有這兩樣"],
+      "decision": "excluded_by_user"
+    },
+    {
+      "name": "天天利美食坊",
+      "region": "台北西門",
+      "google_maps": "https://www.google.com/maps/place/%E5%A4%A9%E5%A4%A9%E5%88%A9%E7%BE%8E%E9%A3%9F%E5%9D%8A/@25.0449773,121.5075459,17z/",
+      "status_evidence_checked": "Google Maps 2026-10-10 顯示營業中；4.1 星、8,573 則評論；相片頁可見 2026 年 9 月餐點照",
+      "fit": ["有滷肉飯加荷包蛋、油豆腐、滷蛋、筍絲", "公開菜單價目 50+30+15+30 恰為 125 元", "近期 Google 照片中有木色桌面及滷肉飯煎蛋"],
+      "conflicts": ["近期 Google 餐點照的飯碗看起來白色素面，目標是米白色斑點碗盤", "目標右上配菜未能確定為筍絲、滷蛋或其他組合"],
+      "decision": "possible_but_tableware_conflict"
+    },
+    {
+      "name": "小王煮瓜",
+      "region": "台北萬華",
+      "google_maps": "https://www.google.com/maps/place/%E5%B0%8F%E7%8E%8B%E7%85%AE%E7%93%9C/@25.0392193,121.4986043,17z/",
+      "status_evidence_checked": "Google Maps 2026-10-10 顯示營業中；4.1 星、14,514 則評論；有 2026 年 7 月近期顧客照",
+      "fit": ["有深色滷肉飯、豆腐與滷味小菜", "價錢可透過加點小菜接近 125 元"],
+      "conflicts": ["近期 Google 照片可見藍白花紋碗和紅色桌面，與目標的米白斑點器皿、深木紋桌明顯不符", "常見搭配為滷鴨蛋而非目標中的煎蛋"],
+      "decision": "excluded_by_recent_tableware_and_food_conflict"
+    },
+    {
+      "name": "辛梅－阿嬤的味道",
+      "region": "桃園平鎮",
+      "google_maps": "https://www.google.com/maps/search/?api=1&query=%E8%BE%9B%E6%A2%85%E9%98%BF%E5%AC%A4%E7%9A%84%E5%91%B3%E9%81%93",
+      "fit": ["有滷肉飯與蛋類搭配", "近期仍有營業資訊"],
+      "conflicts": ["未找到同款煎蛋、滷豆腐及器皿搭配", "未核對 Maps 近期顧客照片"],
+      "decision": "weak_candidate"
+    }
+  ],
+  "excluded": [
+    {
+      "name": "西門麵店",
+      "reason": "使用者明確指出該店蛋包滷肉飯有酸菜和小黃瓜，目標照片沒有這兩樣。"
+    },
+    {
+      "name": "小王煮瓜",
+      "reason": "近期 Google Maps 照片顯示藍白花紋碗、紅桌，與目標器皿和桌面顏色明顯不符；常見蛋品為滷鴨蛋。"
+    }
+  ],
+  "research_date": "2026-10-10",
+  "user_updates": [
+    "地點是台北",
+    "總價是 125 元",
+    "排除西門麵店：蛋包滷肉飯有酸菜及小黃瓜，目標照片沒有",
+    "要求比較天天利與小王煮瓜，記得比對器皿顏色、配菜和價格"
+  ],
+  "conclusion": {
+    "restaurant": null,
+    "leading_candidate": "天天利美食坊",
+    "google_maps": "https://www.google.com/maps/place/%E5%A4%A9%E5%A4%A9%E5%88%A9%E7%BE%8E%E9%A3%9F%E5%9D%8A/@25.0449773,121.5075459,17z/",
+    "confidence": "low",
+    "status": "尚無法確認"
+  }
+}

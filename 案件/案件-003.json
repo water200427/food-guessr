@@ -1,0 +1,84 @@
+{
+  "case_id": "003",
+  "title": "紅燒牛肉麵照片辨識",
+  "created_date": "2026-10-15",
+  "status": "confirmed_candidate",
+  "scope": {
+    "default_regions": [
+      "台北",
+      "桃園",
+      "台南"
+    ],
+    "target_time": "目前仍營業",
+    "user_region_hint": "台北"
+  },
+  "observations": {
+    "confirmed": [
+      "純白圓碗盛裝紅燒牛肉湯／麵",
+      "碗內有 4 大塊極厚切軟嫩帶筋牛肉塊",
+      "正下方浮有一條燉至半透明、帶有纖維紋理的洋蔥條",
+      "碗緣 9 點鐘方向浸泡一撮燙深綠色葉菜",
+      "湯面無預撒生蔥花",
+      "深褐色橫向木紋貼皮餐桌",
+      "左側擺放黑褐色筷子",
+      "背景右上角可見小吃店常見的不鏽鋼料理工作台"
+    ],
+    "uncertain": [
+      "底層是否有細麵條，或為純牛肉湯"
+    ],
+    "not_visible": [
+      "招牌店名",
+      "完整室內全貌"
+    ]
+  },
+  "leading_candidate": {
+    "name": "小公園牛肉麵",
+    "current_address": "台北市大安區瑞安街180巷1號",
+    "historical_addresses": [
+      "台北市大安區泰順街35號",
+      "台北市大安區瑞安街（近安東市場旁小公園鐵皮屋）"
+    ],
+    "google_maps": "https://www.google.com/maps/search/?api=1&query=%E5%B0%8F%E5%85%AC%E5%9C%92%E7%89%9B%E8%82%89%E9%BA%B5",
+    "status_evidence_checked": "近期多位饕客食記（Threads @philipskarnak、Facebook 牛肉麵同好會、部落格）持續更新分享，現址正常營業中",
+    "fit": [
+      "4 大塊極厚切軟嫩帶筋牛肉塊完全吻合",
+      "大量洋蔥熬煮甘甜紅燒湯底、湯中浮出燉軟洋蔥條完全吻合",
+      "碗緣深綠色燙青菜、湯面無預撒生蔥花完全吻合",
+      "純白素面圓碗、深褐色木紋桌、黑褐色筷子及不鏽鋼料理台完全吻合"
+    ],
+    "conflicts": [],
+    "confidence": "high"
+  },
+  "exclusions": [
+    {
+      "name": "七十二牛肉麵",
+      "reason": "招牌清燉牛肉麵雖為4片厚切牛肉，但湯頭為乳白色骨湯，且多使用深色或厚瓷碗，與原圖紅褐色紅燒湯底及純白圓碗不符。",
+      "mismatch_dimension": "broth_type,dishware_color",
+      "reusable_for_new_cases": false
+    },
+    {
+      "name": "老地方牛肉麵食館（大龍街）",
+      "reason": "出餐通常撒有大量新鮮生蔥花，牛肉塊切法與熬煮洋蔥條特徵不符。",
+      "mismatch_dimension": "dish_presentation",
+      "reusable_for_new_cases": false
+    },
+    {
+      "name": "忠誠牛肉麵",
+      "reason": "肉量通常為5至6大塊，且預設撒滿蔥花，與照片4大塊肉、無蔥花特徵不符。",
+      "mismatch_dimension": "dish_presentation",
+      "reusable_for_new_cases": false
+    }
+  ],
+  "research_sources": [
+    "Threads @philipskarnak 貼文 ID: DCCBtYBzHdG（泰順街／小公園牛肉麵造訪紀錄）",
+    "Facebook 牛肉麵同好會社群討論",
+    "隨裕而安美食部落格：小公園牛肉麵 外國人煮的台灣好味道",
+    "陳小可的吃喝玩樂部落格：小公園牛肉麵搬遷現址實訪紀錄"
+  ],
+  "conclusion": {
+    "restaurant": "小公園牛肉麵",
+    "google_maps": "https://www.google.com/maps/search/?api=1&query=%E5%B0%8F%E5%85%AC%E5%9C%92%E7%89%9B%E8%82%89%E9%BA%B5",
+    "confidence": "high",
+    "status": "高度吻合（首選推薦）"
+  }
+}
