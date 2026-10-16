@@ -184,11 +184,102 @@ def lens_search(image_path, query=None, hl="en", gl="us", wait_sec=8, screenshot
         capture_screenshot(screenshot_out, port=port)
     return True
 
+def get_maps_share_link(port=PORT):
+    tabs = get_page_tabs(port)
+    if not tabs:
+        print("[!] 找不到分頁。")
+        return None
+
+    target_tab = None
+    for t in tabs:
+        if "google.com/maps" in t.get("url", ""):
+            target_tab = t
+            break
+    if not target_tab:
+        target_tab = tabs[0]
+
+    ws = websocket.create_connection(target_tab['webSocketDebuggerUrl'], timeout=15)
+    # 授權剪貼簿存取
+    cdp_send(ws, 1, "Browser.grantPermissions", {"permissions": ["clipboardReadWrite", "clipboardSanitizedWrite"]})
+
+    # 點擊分享按鈕
+    click_share_js = """
+    (() => {
+        const btns = Array.from(document.querySelectorAll('button'));
+        const shareBtn = btns.find(b => {
+            const al = b.getAttribute('aria-label') || '';
+            const text = b.innerText || '';
+            const dv = b.getAttribute('data-value') || '';
+            return al.includes('分享') || al.includes('Share') || text.includes('分享') || dv.includes('分享');
+        });
+        if (shareBtn) {
+            shareBtn.click();
+            return 'clicked_share';
+        }
+        return 'share_btn_not_found';
+    })()
+    """
+    res1 = cdp_send(ws, 2, "Runtime.evaluate", {"expression": click_share_js, "returnByValue": True})
+    status1 = res1.get("result", {}).get("result", {}).get("value")
+    if status1 != 'clicked_share':
+        # 如果已經在分享彈窗中，直接嘗試點 Copy
+        pass
+    time.sleep(1.5)
+
+    # 點擊 Copy Link 按鈕
+    click_copy_js = """
+    (() => {
+        const el = Array.from(document.querySelectorAll('div.r3L9Lb')).find(d => d.innerText.includes('Copy Link') || d.innerText.includes('複製連結'));
+        if (el) {
+            let target = el;
+            while (target && target.tagName !== 'BUTTON' && !target.getAttribute('role')?.includes('button') && target.parentElement) {
+                target = target.parentElement;
+            }
+            target.click();
+            return 'clicked_copy';
+        }
+        return 'copy_btn_not_found';
+    })()
+    """
+    res2 = cdp_send(ws, 3, "Runtime.evaluate", {"expression": click_copy_js, "returnByValue": True})
+    time.sleep(1.0)
+
+    # 讀取剪貼簿內容
+    read_js = """
+    (async () => {
+        try {
+            return await navigator.clipboard.readText();
+        } catch(e) {
+            return '';
+        }
+    })()
+    """
+    res3 = cdp_send(ws, 4, "Runtime.evaluate", {"expression": read_js, "awaitPromise": True, "returnByValue": True})
+    url = res3.get("result", {}).get("result", {}).get("value", "")
+
+    # 關閉分享彈出視窗
+    close_js = """
+    (() => {
+        const closeBtn = document.querySelector('div[role="dialog"] button[aria-label="Close"], div[role="dialog"] button[aria-label="關閉"]');
+        if (closeBtn) closeBtn.click();
+    })()
+    """
+    cdp_send(ws, 5, "Runtime.evaluate", {"expression": close_js})
+    ws.close()
+
+    if url and ("maps.app.goo.gl" in url or "goo.gl/maps" in url):
+        print(f"[+] 成功取得 Google Maps 官方短網址: {url}")
+        return url
+    else:
+        print(f"[-] 未能取得短網址 (剪貼簿: {url})")
+        return None
+
 def main():
     parser = argparse.ArgumentParser(description="AI 瀏覽器控制器（嚴格遵守就地控制，絕不亂彈視窗）")
     sub = parser.add_subparsers(dest="command")
 
     sub.add_parser("status", help="檢查目前 Chrome 視窗狀態")
+    sub.add_parser("share", help="在當前 Google Maps 商家頁面點擊分享並取得官方短網址 (maps.app.goo.gl)")
 
     nav_p = sub.add_parser("goto", help="在現有視窗直接跳轉網址")
     nav_p.add_argument("url", help="目標網址")
@@ -233,6 +324,8 @@ def main():
             screenshot_out=args.screenshot,
             text_out=args.text
         )
+    elif args.command == "share":
+        get_maps_share_link()
     else:
         parser.print_help()
 

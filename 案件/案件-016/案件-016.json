@@ -1,0 +1,27 @@
+{
+  "case_id": "016",
+  "case_title": "Discord 上傳照片辨識 - 大稻埕 江牛樓 (Kou Gyu Rou)",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 852925615799009321,
+    "message_id": 1560692030479401040,
+    "author": "coldjoke",
+    "created_at": 1792168378.4901588
+  },
+  "status": "resolved",
+  "guesses": [
+    "江牛樓"
+  ],
+  "exclusions": [],
+  "leading_candidate": {
+    "name": "江牛樓 (Kou Gyu Rou)",
+    "address": "103台北市大同區永樂里民樂街6號",
+    "maps_url": "https://maps.app.goo.gl/j6Tad6B2hXjEtyPr7",
+    "google_maps_url": "https://maps.app.goo.gl/j6Tad6B2hXjEtyPr7",
+    "confidence": "高",
+    "dish": "日式職人紅燒牛肉麵（細麵、雙塊厚切牛腱心、洋蔥碎）搭配季節前菜野菜木盒",
+    "status_current": "營業中（現場排隊登記候位制，11:00 開放登記，12:00 開始營業）"
+  },
+  "resolved": true,
+  "discord_notified": true
+}

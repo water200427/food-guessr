@@ -1,0 +1,10 @@
+# 找餐廳 (Food Guessr) 核心相依套件
+
+# Discord 機器人模組
+discord.py>=2.3.0
+
+# 圖片驗證與處理
+Pillow>=9.0.0
+
+# 本機 Chrome 9222 就地控制與 Google Lens 檢索工具
+websocket-client>=1.6.0

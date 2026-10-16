@@ -6,7 +6,7 @@ from typing import List
 @dataclass
 class DiscordBotConfig:
     bot_token: str = ""
-    trigger_timeout_seconds: int = 180
+    trigger_timeout_seconds: int = 30
     reply_footer: str = "(此為貓貓自動偵測回覆)"
     gemini_api_key: str = ""
 

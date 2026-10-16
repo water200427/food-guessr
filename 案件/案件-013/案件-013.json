@@ -1,0 +1,40 @@
+{
+  "case_id": "013",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 853554271638126596,
+    "message_id": 1560680659469729925,
+    "author": "water200427",
+    "created_at": 1792165705.8880653
+  },
+  "status": "resolved",
+  "guesses": [
+    {
+      "name": "桔客牛排",
+      "address": "桃園市中壢區龍山街11-3號",
+      "google_maps_url": "https://maps.google.com/?cid=12119854744158449979",
+      "confidence": "高",
+      "match_points": [
+        "Google Maps 上由顧客『周郁芳（芳芳）』於 2026 年 6 月 26 日上傳之同系列實拍完全吻合（左下角帶有一模一樣的『芳芳 2026年6月26日』相機浮水印）",
+        "桌面壓有桔客牛排專屬之黃黑雙色印刷菜單桌墊（標註 JACK'S STEAK HOUSE、香煎鱸魚排、巨無霸牛排、套餐加價、集點活動等）",
+        "特大牛排專用正圓形厚木托盤與鑄鐵平盤完全一致",
+        "獨立副餐鐵板麵使用長橢圓形木托盤及帶有長方形雙孔金屬耳把手之鐵板，搭配細油麵、半熟荷包蛋、青四季豆與三色豆，特徵 100% 吻合",
+        "黑色雙耳美耐皿玉米濃湯碗、不鏽鋼湯匙、深茶色直筒水杯完全一致",
+        "桌上放置之招財貓公仔為顧客攜帶/店內擺件，在該顧客上傳之濃湯特寫照片中再度出現",
+        "背景座椅之黑色菱格編織皮革椅背與店內裝潢完全一致"
+      ],
+      "mismatch_points": [],
+      "business_status": "營業中（4.6 顆星，1,442 則評論）"
+    }
+  ],
+  "exclusions": [],
+  "leading_candidate": {
+    "name": "桔客牛排",
+    "address": "桃園市中壢區龍山街11-3號",
+    "google_maps_url": "https://maps.google.com/?cid=12119854744158449979",
+    "confidence": "高"
+  },
+  "resolved": true,
+  "discord_notified": true
+}

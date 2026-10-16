@@ -11,7 +11,7 @@ class DiscordFoodSession:
     first_message: Any  # discord.Message
     image_paths: List[str] = field(default_factory=list)
     created_at: float = field(default_factory=time.time)
-    timeout_seconds: int = 180
+    timeout_seconds: int = 30
     timer_task: Optional[asyncio.Task] = None
     status: str = "PENDING"  # PENDING, TRIGGERED_CMD, TRIGGERED_TIMEOUT, CANCELLED_MENTIONED, FINISHED
 
@@ -22,7 +22,7 @@ class DiscordMessageTracker:
     def __init__(
         self,
         command_triggers: List[str] = None,
-        default_timeout: int = 180,
+        default_timeout: int = 30,
         on_trigger_search_async: Optional[Callable[[DiscordFoodSession, bool], Any]] = None,
         is_mentioning_restaurant_fn: Optional[Callable[[str], bool]] = None
     ):
@@ -35,7 +35,7 @@ class DiscordMessageTracker:
         self._active_sessions: Dict[int, DiscordFoodSession] = {}
 
     def add_food_image(self, channel_id: int, author_id: int, message: Any, image_path: str, timeout: Optional[int] = None) -> DiscordFoodSession:
-        timeout_sec = timeout or self.default_timeout
+        timeout_sec = self.default_timeout if timeout is None else timeout
         session = self._active_sessions.get(channel_id)
 
         # 若該頻道已有進行中的 Session，合併為同一次用餐體驗（多圖追加）

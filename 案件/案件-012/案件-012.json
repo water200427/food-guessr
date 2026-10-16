@@ -1,0 +1,46 @@
+{
+  "case_id": "012",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 853554271638126596,
+    "message_id": 1560670911701581824,
+    "author": "water200427",
+    "created_at": 1792163382.9915302
+  },
+  "status": "resolved",
+  "guesses": [
+    {
+      "name": "三圓豆花 龍潭店",
+      "address": "桃園市龍潭區龍興路5號",
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=%E4%B8%89%E5%9C%93%E8%B1%86%E8%8A%B1+%E6%A1%83%E5%9C%92%E5%B8%82%E9%BE%8D%E6%BD%AD%E5%8D%80%E9%BE%8D%E8%88%88%E8%B7%AF5%E8%99%9F",
+      "confidence": "high",
+      "is_leading": true,
+      "notes": "金邊墨綠色陶碗、立體雪泥黑糖冰沙泥球、灰白水泥米字空心花磚矮牆隔屏、木格壓花玻璃窗、木方桌及開放式金屬廚房完全吻合"
+    },
+    {
+      "name": "三圓豆花 中平店",
+      "address": "桃園市桃園區中平路123號",
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=%E4%B8%89%E5%9C%93%E8%B1%86%E8%8A%B1+%E4%B8%AD%E5%B9%B3%E5%BA%97",
+      "confidence": "medium",
+      "is_leading": false,
+      "notes": "同品牌同器皿與餐點，但中平店為長條形靠牆花磚吧台，無半開放式廚房木格窗格局"
+    }
+  ],
+  "exclusions": [
+    {
+      "name": "三圓豆花 大有店",
+      "reason": "大有店櫃檯為洗石子材質，無米字型水泥空心花磚牆，格局不符"
+    }
+  ],
+  "leading_candidate": {
+    "name": "三圓豆花 龍潭店",
+    "address": "325桃園市龍潭區龍興路5號",
+    "phone": "03 480 1415",
+    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=%E4%B8%89%E5%9C%93%E8%B1%86%E8%8A%B1+%E6%A1%83%E5%9C%92%E5%B8%82%E9%BE%8D%E6%BD%AD%E5%8D%80%E9%BE%8D%E8%88%88%E8%B7%AF5%E8%99%9F",
+    "status": "營業中",
+    "confidence": "高"
+  },
+  "resolved": true,
+  "discord_notified": true
+}

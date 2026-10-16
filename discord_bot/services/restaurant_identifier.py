@@ -31,19 +31,10 @@ class RestaurantIdentifier:
             print(f"[貓貓偵探 ⚠️] 找不到照片檔案: {primary_image}")
             return None
 
-        # 1. 若有群友猜測的店名候選，優先透過 Lens 附加關鍵字進行精確交叉比對
-        if guess_candidates:
-            for guess in guess_candidates:
-                clean_guess = guess.strip()
-                if 2 <= len(clean_guess) <= 20:
-                    print(f"[貓貓偵探 🐾] 發現群友猜測店名:【{clean_guess}】，正在呼叫 Google Lens 進行交叉查證...")
-                    verified = self._run_lens_search(primary_image, query=clean_guess)
-                    if verified:
-                        print(f"[貓貓偵探 🎯] 群友猜測命中！成功核實店家: {verified.get('name')}")
-                        return verified
-
-        # 2. 原生圖片辨識：不依賴粗糙的本地關鍵字猜測，全面交由 Antigravity 獨立對話深度排查
-        print(f"[貓貓偵探 🔍] 原生照片交由 Antigravity 深度物證分析，以確保 100% 正確性。")
+        # 依專案規範：機器人側絕不憑字串匹配草率判定店家或宣布命中。
+        # 所有照片與群友猜測線索全面移交本地 Antigravity 進行深度多模態物證排查（餐點、器皿、環境核對），
+        # 確保 100% 準確性，避免如「澎拜」等同音或誤猜被錯誤判定為正確。
+        print(f"[貓貓偵探 🔍] 原生照片與線索交由本地 Antigravity 深度物證分析，確保真實準確性。")
         return None
 
     def format_reply(self, info: Optional[Dict[str, str]], is_command_trigger: bool = False) -> Optional[str]:
@@ -107,8 +98,10 @@ class RestaurantIdentifier:
         return None
 
     def _extract_restaurant_name(self, text: str, query: Optional[str] = None) -> Optional[str]:
-        if query and query.lower() in text.lower():
-            return query
+        if query:
+            if query.lower() in text.lower():
+                return query
+            return None
 
         lines = [line.strip() for line in text.split("\n") if line.strip()]
         for line in lines:

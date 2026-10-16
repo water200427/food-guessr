@@ -1,0 +1,18 @@
+{
+  "case_id": "011",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 853554271638126596,
+    "message_id": 1560667753210449991,
+    "author": "water200427",
+    "created_at": 1792162630.0329776
+  },
+  "status": "unconfirmed",
+  "guesses": [],
+  "exclusions": [],
+  "leading_candidate": null,
+  "resolved": true,
+  "timeout_cutoff": true,
+  "discord_notified": true
+}

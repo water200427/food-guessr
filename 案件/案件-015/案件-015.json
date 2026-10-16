@@ -1,0 +1,27 @@
+{
+  "case_id": "015",
+  "case_title": "Discord 上傳照片辨識 - 樹太郎 日式炸豬排咖哩飯",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 852925615799009321,
+    "message_id": 1560690125187588189,
+    "author": "water200427",
+    "created_at": 1792167924.2449286
+  },
+  "status": "resolved",
+  "guesses": [
+    "樹太郎"
+  ],
+  "exclusions": [],
+  "leading_candidate": {
+    "name": "樹太郎 (Kitarou's Kitchen)",
+    "address": "320桃園市中壢區延平路316號",
+    "maps_url": "https://www.google.com/maps/place/%E6%A8%B9%E5%A4%AA%E9%83%8E/@24.960647,121.2256717,17z/data=!3m1!4b1!4m6!3m5!1s0x346822157a414349:0x7c0cdaf76b2ced82!8m2!3d24.960647!4d121.2256717!16s%2Fg%2F11bttb3_11?hl=zh-TW",
+    "google_maps_url": "https://www.google.com/maps/place/%E6%A8%B9%E5%A4%AA%E9%83%8E/@24.960647,121.2256717,17z/data=!3m1!4b1!4m6!3m5!1s0x346822157a414349:0x7c0cdaf76b2ced82!8m2!3d24.960647!4d121.2256717!16s%2Fg%2F11bttb3_11?hl=zh-TW",
+    "confidence": "高",
+    "dish": "日式炸豬排咖哩飯",
+    "status_current": "營業中"
+  },
+  "resolved": true,
+  "discord_notified": true
+}
