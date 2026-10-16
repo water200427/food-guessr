@@ -47,7 +47,6 @@ flowchart LR
 - `discord_bot/`：Discord 機器人獨立模組（[前往專屬說明文件](discord_bot/README.md)）。
 - `案件/案件模板.md`：每張新照片／每個新辨識任務的紀錄模板。
 - `案件/`：歷史辨識案件（如案件 001～009）的觀察、紀錄、照片與排除名單。
-- `.agents/skills/security-audit/`：程式碼推送前資安與合規性自動化審查技能。
 
 ---
 
