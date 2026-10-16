@@ -5,6 +5,7 @@ import time
 import base64
 import argparse
 import urllib.request
+import urllib.parse
 import websocket
 import subprocess
 
@@ -111,6 +112,86 @@ def capture_screenshot(output_path, port=PORT):
     ws.close()
     return True
 
+def lens_search(image_path, query=None, hl="zh-TW", gl="TW", wait_sec=9, screenshot_out=None, text_out=None, port=PORT):
+    abs_img = os.path.abspath(image_path)
+    if not os.path.exists(abs_img):
+        print(f"[!] 找不到圖片檔案: {abs_img}")
+        return False
+
+    if not launch_chrome_if_needed(port):
+        return False
+
+    with open(abs_img, "rb") as f:
+        b64_img = base64.b64encode(f.read()).decode("ascii")
+
+    navigate_in_place(f"https://www.google.com/?hl={hl}&gl={gl}", port=port, wait_sec=3)
+    tabs = get_page_tabs(port)
+    ws = websocket.create_connection(tabs[0]['webSocketDebuggerUrl'], timeout=20)
+
+    js_open_lens = """
+    (function() {
+        const btns = document.querySelectorAll('[aria-label*="圖片"], [aria-label*="image"], [aria-label*="Image"], [aria-label*="鏡頭"], [aria-label*="Lens"], [aria-label*="Bild"], div[role="button"]');
+        for (const b of btns) {
+            const label = (b.getAttribute('aria-label') || b.getAttribute('title') || '').toLowerCase();
+            if (label.includes('圖片') || label.includes('image') || label.includes('lens') || label.includes('鏡頭') || label.includes('bild')) {
+                b.click();
+                return 'clicked: ' + label;
+            }
+        }
+        return 'not found';
+    })()
+    """
+    cdp_send(ws, 10, "Runtime.evaluate", {"expression": js_open_lens})
+    time.sleep(1.5)
+
+    js_inject = f"""
+    (function() {{
+        const b64 = "{b64_img}";
+        const byteCharacters = atob(b64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {{
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }}
+        const byteArray = new Uint8Array(byteNumbers);
+        const file = new File([byteArray], "upload.jpg", {{type: "image/jpeg"}});
+        const dt = new DataTransfer();
+        dt.items.add(file);
+
+        const fileInputs = document.querySelectorAll('input[type="file"]');
+        if (fileInputs.length > 0) {{
+            const input = fileInputs[fileInputs.length - 1];
+            input.files = dt.files;
+            input.dispatchEvent(new Event('change', {{ bubbles: true }}));
+            return 'injected into file input';
+        }}
+        return 'no file input found';
+    }})()
+    """
+    res = cdp_send(ws, 11, "Runtime.evaluate", {"expression": js_inject})
+    print(f"[*] Google Lens 圖片注入狀態: {res.get('result', {}).get('value')}")
+    time.sleep(wait_sec)
+
+    if query:
+        url_res = cdp_send(ws, 12, "Runtime.evaluate", {"expression": "window.location.href"})
+        base_url = url_res.get("result", {}).get("value", "")
+        if "vsrid=" in base_url:
+            q_url = base_url + "&q=" + urllib.parse.quote(query)
+            print(f"[*] 附加多模態關鍵字搜尋: {query}")
+            cdp_send(ws, 13, "Page.navigate", {"url": q_url})
+            time.sleep(wait_sec - 2)
+
+    if text_out:
+        txt_res = cdp_send(ws, 14, "Runtime.evaluate", {"expression": "document.body.innerText"})
+        body_text = txt_res.get("result", {}).get("value", "")
+        with open(text_out, "w", encoding="utf-8") as f:
+            f.write(body_text)
+        print(f"[+] 頁面文字已儲存至: {text_out}")
+
+    ws.close()
+    if screenshot_out:
+        capture_screenshot(screenshot_out, port=port)
+    return True
+
 def main():
     parser = argparse.ArgumentParser(description="AI 瀏覽器控制器（嚴格遵守就地控制，絕不亂彈視窗）")
     sub = parser.add_subparsers(dest="command")
@@ -123,6 +204,15 @@ def main():
 
     shot_p = sub.add_parser("screenshot", help="截取現有視窗畫面")
     shot_p.add_argument("output", help="儲存路徑")
+
+    lens_p = sub.add_parser("lens", help="使用 Google Lens 進行以圖搜尋或圖文多模態搜尋")
+    lens_p.add_argument("image", help="要上傳的本地圖片路徑")
+    lens_p.add_argument("--query", "-q", help="選填：附加搜尋關鍵字")
+    lens_p.add_argument("--hl", default="zh-TW", help="介面語言 (預設 zh-TW)")
+    lens_p.add_argument("--gl", default="TW", help="地區代碼 (預設 TW)")
+    lens_p.add_argument("--wait", type=int, default=9, help="等待秒數")
+    lens_p.add_argument("--screenshot", "-s", help="選填：儲存結果截圖路徑")
+    lens_p.add_argument("--text", "-t", help="選填：儲存結果純文字路徑")
 
     args = parser.parse_args()
 
@@ -141,6 +231,16 @@ def main():
         navigate_in_place(args.url, wait_sec=args.wait)
     elif args.command == "screenshot":
         capture_screenshot(args.output)
+    elif args.command == "lens":
+        lens_search(
+            args.image,
+            query=args.query,
+            hl=args.hl,
+            gl=args.gl,
+            wait_sec=args.wait,
+            screenshot_out=args.screenshot,
+            text_out=args.text
+        )
     else:
         parser.print_help()
 
