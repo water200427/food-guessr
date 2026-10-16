@@ -28,7 +28,7 @@ config.json
 discord_bot/config.json
 *.env
 *.env.*
-!.env.example
+!**/.env.example
 *.key
 *.token
 credentials.json

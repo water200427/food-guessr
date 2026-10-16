@@ -30,7 +30,9 @@
 discord_bot/
 ├── bot.py                     # Discord 機器人主程式 (事件監聽、表情控制與結案監控)
 ├── config.py                  # 設定檔載入模組 (支援 config.json 與環境變數)
-├── config.json.example        # 設定檔範本
+├── config.json.example        # 設定檔範本 (JSON 模式)
+├── .env.example               # 環境變數設定範本 (.env 模式)
+├── requirements.txt           # Python 套件依賴清單
 ├── assets/                    # 機器人頭像與視覺素材
 ├── services/
 │   ├── food_detector.py       # 食物圖片偵測與店名提及過濾器 (Gemini 3.5 Flash Lite)
@@ -47,9 +49,9 @@ discord_bot/
 
 ### 1. 安裝 Python 依賴
 ```bash
-pip install -r ../requirements.txt
+pip install -r discord_bot/requirements.txt
 ```
-*(或直接 `pip install discord.py`)*
+*(或進入目錄執行：`cd discord_bot && pip install -r requirements.txt`)*
 
 ### 2. 設定憑證與金鑰
 本模組支援 **設定檔（`config.json`）** 或 **環境變數（`.env`）** 雙軌配置：
@@ -57,7 +59,7 @@ pip install -r ../requirements.txt
 - **方式 A：使用 `config.json`（推薦）**：
   複製範本檔：
   ```bash
-  cp config.json.example config.json
+  cp discord_bot/config.json.example discord_bot/config.json
   ```
   填入內容：
   ```json
@@ -71,7 +73,12 @@ pip install -r ../requirements.txt
   > [!NOTE]
   > `gemini_api_key` 為選填。填入後可啟用 Google Gemini 3.5 Flash Lite 的進階食物判讀與對話店名意圖分析。
 
-- **方式 B：使用環境變數**：
+- **方式 B：使用環境變數（.env）**：
+  複製範本檔：
+  ```bash
+  cp discord_bot/.env.example discord_bot/.env
+  ```
+  填入變數或直接於終端機設定：
   ```bash
   export DISCORD_BOT_TOKEN="YOUR_DISCORD_BOT_TOKEN_HERE"
   export GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"
