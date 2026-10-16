@@ -4,17 +4,31 @@ scratch/
 *.tmp
 *.log
 
+# 作業系統雜訊與編輯器暫存
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
 # Python 暫存與快取
 __pycache__/
 */__pycache__/
 */**/__pycache__/
 *.pyc
+*.pyo
+*.pyd
 
 # 敏感資訊與私密金鑰 (絕對不上傳 GitHub)
 config.json
 discord_bot/config.json
 *.env
 *.env.*
+!.env.example
 *.key
 *.token
 credentials.json

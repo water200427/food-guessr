@@ -164,7 +164,8 @@ async def on_trigger_search_callback(session: DiscordFoodSession, is_command: bo
 
         # 全自動在 Antigravity 專案開啟全新獨立對話 (New Conversation)，模型指定為 Flash
         try:
-            agentapi_bat = r"C:\Users\water\.gemini\antigravity\bin\agentapi.bat"
+            home_dir = os.path.expanduser("~")
+            agentapi_bat = os.path.join(home_dir, ".gemini", "antigravity", "bin", "agentapi.bat")
             if os.path.exists(agentapi_bat):
                 import subprocess
                 investigate_prompt = (
