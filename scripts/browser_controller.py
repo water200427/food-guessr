@@ -112,7 +112,7 @@ def capture_screenshot(output_path, port=PORT):
     ws.close()
     return True
 
-def lens_search(image_path, query=None, hl="zh-TW", gl="TW", wait_sec=9, screenshot_out=None, text_out=None, port=PORT):
+def lens_search(image_path, query=None, hl="en", gl="us", wait_sec=8, screenshot_out=None, text_out=None, port=PORT):
     abs_img = os.path.abspath(image_path)
     if not os.path.exists(abs_img):
         print(f"[!] 找不到圖片檔案: {abs_img}")
@@ -121,71 +121,63 @@ def lens_search(image_path, query=None, hl="zh-TW", gl="TW", wait_sec=9, screens
     if not launch_chrome_if_needed(port):
         return False
 
-    with open(abs_img, "rb") as f:
-        b64_img = base64.b64encode(f.read()).decode("ascii")
-
-    navigate_in_place(f"https://www.google.com/?hl={hl}&gl={gl}", port=port, wait_sec=3)
+    navigate_in_place(f"https://images.google.com/?hl={hl}&gl={gl}", port=port, wait_sec=3)
     tabs = get_page_tabs(port)
-    ws = websocket.create_connection(tabs[0]['webSocketDebuggerUrl'], timeout=20)
+    ws = websocket.create_connection(tabs[0]['webSocketDebuggerUrl'], timeout=30)
 
-    js_open_lens = """
-    (function() {
-        const btns = document.querySelectorAll('[aria-label*="圖片"], [aria-label*="image"], [aria-label*="Image"], [aria-label*="鏡頭"], [aria-label*="Lens"], [aria-label*="Bild"], div[role="button"]');
-        for (const b of btns) {
-            const label = (b.getAttribute('aria-label') || b.getAttribute('title') || '').toLowerCase();
-            if (label.includes('圖片') || label.includes('image') || label.includes('lens') || label.includes('鏡頭') || label.includes('bild')) {
-                b.click();
-                return 'clicked: ' + label;
-            }
-        }
-        return 'not found';
+    click_js = """
+    (() => {
+        const btn = document.querySelector('div[aria-label*="image"]') ||
+                    document.querySelector('div[aria-label*="圖"]') ||
+                    document.querySelector('.nDcEnd');
+        if (btn) { btn.click(); return 'clicked lens button'; }
+        return 'lens button not found';
     })()
     """
-    cdp_send(ws, 10, "Runtime.evaluate", {"expression": js_open_lens})
-    time.sleep(1.5)
+    r1 = cdp_send(ws, 10, "Runtime.evaluate", {"expression": click_js, "returnByValue": True})
+    print(f"[*] 開啟 Lens 對話框: {r1.get('result', {}).get('result', {}).get('value')}")
+    time.sleep(2)
 
-    js_inject = f"""
-    (function() {{
-        const b64 = "{b64_img}";
-        const byteCharacters = atob(b64);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {{
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }}
-        const byteArray = new Uint8Array(byteNumbers);
-        const file = new File([byteArray], "upload.jpg", {{type: "image/jpeg"}});
-        const dt = new DataTransfer();
-        dt.items.add(file);
+    cdp_send(ws, 11, "DOM.enable")
+    doc = cdp_send(ws, 12, "DOM.getDocument", {"depth": -1})
+    root_id = doc['result']['root']['nodeId']
+    node = cdp_send(ws, 13, "DOM.querySelector", {"nodeId": root_id, "selector": "input[type='file']"})
+    node_id = node.get('result', {}).get('nodeId', 0)
 
-        const fileInputs = document.querySelectorAll('input[type="file"]');
-        if (fileInputs.length > 0) {{
-            const input = fileInputs[fileInputs.length - 1];
-            input.files = dt.files;
-            input.dispatchEvent(new Event('change', {{ bubbles: true }}));
-            return 'injected into file input';
-        }}
-        return 'no file input found';
-    }})()
-    """
-    res = cdp_send(ws, 11, "Runtime.evaluate", {"expression": js_inject})
-    print(f"[*] Google Lens 圖片注入狀態: {res.get('result', {}).get('value')}")
-    time.sleep(wait_sec)
+    if node_id != 0:
+        cdp_send(ws, 14, "DOM.setFileInputFiles", {"files": [abs_img], "nodeId": node_id})
+        print(f"[*] 已上傳圖片至 Google Lens: {abs_img}")
+        time.sleep(wait_sec)
 
-    if query:
-        url_res = cdp_send(ws, 12, "Runtime.evaluate", {"expression": "window.location.href"})
-        base_url = url_res.get("result", {}).get("value", "")
-        if "vsrid=" in base_url:
-            q_url = base_url + "&q=" + urllib.parse.quote(query)
+        if query:
             print(f"[*] 附加多模態關鍵字搜尋: {query}")
-            cdp_send(ws, 13, "Page.navigate", {"url": q_url})
-            time.sleep(wait_sec - 2)
+            focus_js = """
+            (() => {
+                const el = document.querySelector('textarea[name="q"], input[name="q"], [role="combobox"]');
+                if (el) {
+                    el.focus();
+                    el.value = '';
+                    return true;
+                }
+                return false;
+            })()
+            """
+            cdp_send(ws, 15, "Runtime.evaluate", {"expression": focus_js, "returnByValue": True})
+            time.sleep(0.5)
+            cdp_send(ws, 16, "Input.insertText", {"text": query})
+            time.sleep(0.5)
+            cdp_send(ws, 17, "Input.dispatchKeyEvent", {"type": "keyDown", "windowsVirtualKeyCode": 13, "key": "Enter", "code": "Enter"})
+            cdp_send(ws, 18, "Input.dispatchKeyEvent", {"type": "keyUp", "windowsVirtualKeyCode": 13, "key": "Enter", "code": "Enter"})
+            time.sleep(wait_sec - 1)
 
-    if text_out:
-        txt_res = cdp_send(ws, 14, "Runtime.evaluate", {"expression": "document.body.innerText"})
-        body_text = txt_res.get("result", {}).get("value", "")
-        with open(text_out, "w", encoding="utf-8") as f:
-            f.write(body_text)
-        print(f"[+] 頁面文字已儲存至: {text_out}")
+        if text_out:
+            txt_res = cdp_send(ws, 19, "Runtime.evaluate", {"expression": "document.body.innerText", "returnByValue": True})
+            body_text = txt_res.get("result", {}).get("result", {}).get("value", "")
+            with open(text_out, "w", encoding="utf-8") as f:
+                f.write(body_text)
+            print(f"[+] 頁面文字已儲存至: {text_out}")
+    else:
+        print("[!] 找不到 input[type='file'] 節點")
 
     ws.close()
     if screenshot_out:

@@ -1,0 +1,144 @@
+{
+  "case_id": "006",
+  "title": "巧達濃湯照片",
+  "created_date": "2026-10-16",
+  "status": "investigating",
+  "scope": {
+    "target_regions": [
+      "美國（優先查核麻薩諸塞州／波士頓、紐約及新英格蘭沿海地區）"
+    ],
+    "target_time": "目前仍營業",
+    "user_region_hint": "應該也是美國"
+  },
+  "observations": {
+    "confirmed": [
+      "白色陶瓷深湯盅（Soup crock / ramekin），容量約 8 oz，碗口加厚圓唇（Rolled rim），碗身外壁有極為顯著的斜向螺旋浮雕條紋（Spiral / Swirl fluted ribs，商用餐具如 Tuxton DuraTux BEX-0804 或 CAC China SOFS-8-EW 款式）",
+      "白色圓形底盤（盤緣帶有細同心圓浮雕線條 Concentric rim）",
+      "湯盅與底盤間墊有一張對折成三角形的白色壓花餐巾紙",
+      "右側不鏽鋼大湯匙，握柄邊緣有凸起鑲邊滾邊裝飾（Rim flatware）",
+      "左側附有一包完整的透明包裝 Westminster Bakers Co. Oyster Crackers（單包裝印有棕色標頭，營養標籤：Calories 60, Sodium 90mg, Total Carb 10g, Protein 1g, U.S.A.）",
+      "經典乳白色新英格蘭蛤蜊巧達濃湯（New England Clam Chowder），表面均勻撒有切碎乾燥巴西里碎（Parsley flakes）",
+      "黑色平光圓桌（桌面邊緣帶有圓弧倒角，黑色美耐皿或黑漆木桌），右上角有重底透明玻璃水杯／調味罐底部倒影"
+    ],
+    "uncertain": [
+      "確切城市與餐廳名稱（優先聚焦於使用者去過的波士頓、劍橋或紐約一帶）",
+      "用餐型態（為傳統海鮮專門店、美式餐酒館、或是飯店／景點附設餐廳）"
+    ],
+    "not_visible": [
+      "餐廳招牌或 Logo",
+      "紙巾與餐具上無任何店名印刷文字",
+      "完整室內全景"
+    ]
+  },
+  "candidates": [],
+  "excluded": [
+    {
+      "name": "Legal Sea Foods",
+      "reason": "官方湯杯為印有自家藍色 Logo 之紙杯或特製寬口碗，且附餐餅乾為自家藍白專屬包裝，非標準 Westminster Bakers 棕白袋裝。"
+    },
+    {
+      "name": "Union Oyster House",
+      "reason": "湯碗邊緣帶有深綠／深褐雙圈線條，且桌墊固定為歷史地圖紙墊，器皿與桌面完全不符。"
+    },
+    {
+      "name": "The Boston Sail Loft",
+      "reason": "以滿出杯緣的招牌馬克杯（Mug）盛裝濃湯聞名，非斜紋白瓷盅。"
+    },
+    {
+      "name": "Ned Devine's Irish Pub",
+      "reason": "湯碗為圓柱垂直平滑直壁，且底盤固定墊黑色餐巾紙，非本案之斜紋盅與白色紙巾。"
+    },
+    {
+      "name": "Atlantic Fish Company",
+      "reason": "提供麵包碗或雙耳白瓷獅頭盅（Lion head bowl），且餐巾紙印有 Atlantic Fish 草寫標誌。"
+    },
+    {
+      "name": "Summer Shack",
+      "reason": "湯碗印有紅色標誌圈 'Summer Shack food is love'，器皿不符。"
+    },
+    {
+      "name": "The Barking Crab",
+      "reason": "主要採用黃紅標誌免洗紙杯盛裝，非正規白瓷底盤。"
+    },
+    {
+      "name": "Cheers Boston",
+      "reason": "濃湯採用馬克杯（Mug）或麵包碗供應，無此款斜紋白瓷盅。"
+    },
+    {
+      "name": "Warren Tavern",
+      "reason": "湯碗為平滑無斜紋之圓碗，器皿不符。"
+    },
+    {
+      "name": "The Black Rose",
+      "reason": "採用藍圈瓷碗或深色平滑碗，器皿不符。"
+    },
+    {
+      "name": "Bell in Hand Tavern",
+      "reason": "湯碗為雙耳獅頭盅或八角直筒盅，非斜紋盅。"
+    },
+    {
+      "name": "Green Dragon Tavern",
+      "reason": "湯碗為平滑外壁圓碗，非斜紋盅。"
+    },
+    {
+      "name": "Chart House (Boston)",
+      "reason": "採用寬口平滑白瓷淺碗，器皿不符。"
+    },
+    {
+      "name": "Joe's Waterfront",
+      "reason": "採用傾斜深碗或直筒碗，器皿不符。"
+    },
+    {
+      "name": "Granary Tavern",
+      "reason": "招牌濃湯以黑色鑄鐵小吊鍋（Cauldron pot）盛裝，器皿不符。"
+    },
+    {
+      "name": "The Hourly Oyster House",
+      "reason": "小餅乾盛於獨立小白瓷盅內，非袋裝餅乾；湯碗外壁無斜紋。"
+    },
+    {
+      "name": "Salty Dog Oyster Bar & Grill",
+      "reason": "以印有自家藍色魚形標誌之陶瓷馬克杯盛裝，器皿不符。"
+    },
+    {
+      "name": "Beantown Pub",
+      "reason": "採用寬唇淺平碗或深褐色雙耳陶盅，器皿不符。"
+    },
+    {
+      "name": "21st Amendment",
+      "reason": "採用大尺寸寬緣淺湯盤，器皿不符。"
+    },
+    {
+      "name": "Neptune Oyster",
+      "reason": "採用印有 Neptune 標誌之寬淺湯盤或大平盤，器皿不符。"
+    },
+    {
+      "name": "Row 34",
+      "reason": "招牌呈現為插上一大片三角形自製薄脆餅，碗壁平滑，器皿不符。"
+    },
+    {
+      "name": "The Daily Catch",
+      "reason": "以寬盤盛裝且中間飾有炸蛤蜊泡芙，器皿不符。"
+    },
+    {
+      "name": "Yankee Lobster",
+      "reason": "採用外帶免洗紙杯盛裝，器皿不符。"
+    },
+    {
+      "name": "Grand Central Oyster Bar (NYC)",
+      "reason": "固定使用紅紅白白格紋桌布或白色大理石吧台配寬沿淺盤，非黑桌與斜紋盅。"
+    },
+    {
+      "name": "Fraunces Tavern (NYC)",
+      "reason": "湯碗為平滑厚唇碗配切片黑麥麵包，器皿不符。"
+    },
+    {
+      "name": "Cull & Pistol (NYC)",
+      "reason": "底盤印有 CULL & PISTOL 黑色專屬字樣，器皿不符。"
+    },
+    {
+      "name": "Water View Grill (Portsmouth, NH)",
+      "reason": "該店在 Yelp 上已標記為歇業（原址曾為 Rio Tequila Cantina），且其盛裝碗型為光滑無紋圓碗。"
+    }
+  ]
+}
