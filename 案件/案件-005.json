@@ -1,0 +1,38 @@
+{
+  "case_id": "005",
+  "title": "烤餅洋蔥圈水景照片",
+  "created_date": "2026-10-16",
+  "status": "investigating",
+  "scope": {
+    "target_regions": [
+      "德國（優先）",
+      "歐洲附近",
+      "美國本土（因鋁罐與建材全為美規標準，保留記憶偏差之雙軌查核）"
+    ],
+    "target_time": "目前仍營業（鋁罐版權標示 © 2024，確認攝於 2024 年或之後）",
+    "user_region_hint": "德國（優先）或是歐洲附近"
+  },
+  "observations": {
+    "confirmed": [
+      "左邊大牛皮紙船形盒（Kraft paper food boat）裝有兩塊扇形對折墨西哥起司烤餅（Quesadilla），外皮有乾烙焦斑、內有融化黃白雙色起司",
+      "中間小牛皮紙船形盒裝有金黃色厚粉漿酥炸洋蔥圈（Battered onion rings）",
+      "右邊為綠色鋁罐 Canada Dry Ginger Ale（12 FL OZ / 355 mL），印有美國 FDA 標準單語英文 Nutrition Facts、HIGH FRUCTOSE CORN SYRUP 成分，以及 © 2024 DR PEPPER/SEVEN UP, INC., 6425 HALL OF FAME LANE, FRISCO, TX 75034",
+      "條碼區無德國 DPG Pfand 押瓶費貼紙或歐盟多語貼紙",
+      "深棕色美式格紋防滑長方塑膠托盤（Cambro / Carlisle 風格）與兩團原色牛皮餐巾紙",
+      "室內左側為刷有米白色乳膠漆的厚實垂直牆柱（具滾筒漆面紋理與斜角窗洞導邊），屬陸上或碼頭建築而非小型船艙",
+      "窗台為美式圓頭實木窗台板（Bullnose wooden window stool with returned rounded end），下接深灰棕色美耐皿桌面，窗框為黑色鋁合金",
+      "從約 2 樓高度俯瞰開闊水域，右上角遠方可見對岸陸地",
+      "水面中央有一座孤立錨定的白色浮動碼頭（Floating pontoon dock），左端連有帶兩排垂直欄杆立柱的斜坡引橋（gangway ramp），右端有橘紅色標記；其右後方遠處水面有一顆白色球形繫船浮標（white mooring buoy）"
+    ],
+    "uncertain": [
+      "拍攝地點究竟位於德國/歐洲（如駐德美軍基地 MWR/AAFES 或進口美式快餐店），抑或實際位於美國本土水岸/Marina 餐廳",
+      "烤餅內餡除雙色起司外是否含雞肉丁"
+    ],
+    "not_visible": [
+      "店名標誌",
+      "收據或菜單文字"
+    ]
+  },
+  "candidates": [],
+  "excluded": []
+}
