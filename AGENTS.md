@@ -16,6 +16,21 @@
 
 `案件/` 內既有案件是範例及歷史紀錄，不是新照片的預設線索。新案件不能繼承案件 001 的新北地點、菜色、餐具描述、候選或排除名單。讀取 `案件-001.json` 只為了處理案件 001。
 
+## 瀏覽器與圖片搜尋工具規範（優先使用就地控制器）
+
+1. **優先使用 `scripts/browser_controller.py`**：
+   - 本專案包含中文路徑（`找餐廳`），部分內建瀏覽器子代理的 `upload_file` 工具會因路徑編碼或沙盒限制報錯（`Access denied`），且子代理容易消耗大量 Token。
+   - 主代理應優先透過終端機執行 `python scripts/browser_controller.py` 直接操控本機 `Port 9222` 的 AI 專用 Chrome（就地跳轉、絕不亂彈新視窗）：
+     - 檢查狀態：`python scripts/browser_controller.py status`
+     - 網址導航：`python scripts/browser_controller.py goto "<URL>" --wait 4`
+     - 畫面截圖：`python scripts/browser_controller.py screenshot "scratch/out.jpg"`
+     - Google Lens 以圖搜尋／圖文多模態搜尋：`python scripts/browser_controller.py lens "<圖片路徑>" -q "<附加關鍵字>" -s "scratch/lens.jpg" -t "scratch/lens.txt"`
+2. **時間控制（30 分鐘停損原則）**：
+   - 單次調查若超過 25～30 分鐘仍未確認答案，應先暫停並整理目前已確認的特徵、已排除店家與卡關疑問（例如客觀物證與記憶地點是否衝突）回報使用者，避免過度空轉。
+3. **階段性整理與 Git 整潔**：
+   - 調查過程中的局部裁切圖、網頁截圖一律存放在 `scratch/` 目錄（已列於 `.gitignore`），不要污染 `案件/` 與根目錄。
+   - 每當案件告一段落或結案時，確保 `案件/案件-00X-*.jpg`、`案件/案件-00X-*.md` 與 `案件/案件-00X.json` 同步更新，並依使用者指示執行 `git commit` 與 `git push`。
+
 ## 完整標準
 
 依 `找餐廳判斷規則.md` 執行完整比對。若不能使用即時網路搜尋、Google Maps 或圖片搜尋，不要假稱已確認目前營業或近期器皿；說明限制並繼續完成可做的工作。
