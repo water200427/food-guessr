@@ -1,0 +1,35 @@
+{
+  "case_id": "022",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 852925615799009321,
+    "message_id": 1560918582743932938,
+    "author": "kevin_112",
+    "created_at": 1792222391.761315
+  },
+  "status": "resolved",
+  "guesses": [
+    {
+      "name": "川涌の湯 マウントビュー箱根 (Mount View Hakone / 箱根山景酒店)",
+      "google_maps_url": "https://maps.app.goo.gl/dsrB2e2j87F2HVLp8",
+      "confidence": "高",
+      "matched_features": [
+        "木製九宮格木盒及九款特製小鉢（粉紅花形玉子燒、黃碗浸菜、紅白條紋沙拉等）完全一致",
+        "雙色拼接方形陶盤鋪竹葉之厚切鹽烤鮭魚",
+        "黑色鐵鍋於固體燃料爐上現煮螃蟹味噌湯（蟹の味噌汁）",
+        "桌邊露出的深藍色在地名酒「箱根山」（井上酒造）",
+        "餐廳深色木質紋理餐桌與和風直格柵隔間"
+      ]
+    }
+  ],
+  "exclusions": [],
+  "leading_candidate": {
+    "name": "川涌の湯 マウントビュー箱根 (Mount View Hakone / 箱根山景酒店)",
+    "google_maps_url": "https://maps.app.goo.gl/dsrB2e2j87F2HVLp8",
+    "confidence": "高",
+    "reason": "九宮格木盒小鉢造型與菜色完全相符、桌邊加熱螃蟹味噌湯、雙色陶盤厚切烤鮭魚，且桌旁酒水明確印有在地清酒「箱根山」，與飯店 1 樓餐廳環境格局 100% 吻合。"
+  },
+  "resolved": true,
+  "discord_notified": true
+}
