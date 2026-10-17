@@ -380,3 +380,81 @@ class CaseManager:
         except Exception as e:
             print(f"[CaseManager ⚠️] 自動執行 git commit & push 失敗: {e}")
             return False
+
+    def get_all_resolved_cases(self) -> List[Dict[str, Any]]:
+        """
+        取得所有已結案案件清單，依案件編號升序排序
+        """
+        cases = []
+        for fpath in self._get_case_json_paths():
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if data.get("resolved"):
+                    data["_json_path"] = fpath
+                    cases.append(data)
+            except Exception:
+                pass
+        cases.sort(key=lambda x: str(x.get("case_id", "000")))
+        return cases
+
+    def get_recent_resolved_cases(self, limit: int = 5) -> List[Dict[str, Any]]:
+        """
+        取得最近結案的案件清單（由新到舊）
+        """
+        resolved = self.get_all_resolved_cases()
+        return list(reversed(resolved))[:limit]
+
+    def find_case_by_query(self, query: str = "") -> Optional[Dict[str, Any]]:
+        """
+        智慧模糊查詢已結案案件：
+        1. 空字串 ➜ 回傳最新結案案件
+        2. 數字或案件編號 ➜ 精確比對案件編號 (如 23, 023, 案件-023)
+        3. 關鍵字 ➜ 依序搜尋店名、料理、判定依據與 Markdown 報告內文 (回傳最新匹配者)
+        """
+        resolved = self.get_all_resolved_cases()
+        if not resolved:
+            return None
+
+        # 情境 1: 無參數，回傳最新結案
+        if not query or not query.strip():
+            return resolved[-1]
+
+        q = query.strip().lower()
+
+        # 情境 2: 數字或編號比對
+        m = re.search(r"(\d+)", q)
+        if m:
+            target_id = f"{int(m.group(1)):03d}"
+            for c in reversed(resolved):
+                if c.get("case_id") == target_id:
+                    return c
+
+        # 情境 3: 店名、料理、判定理由關鍵字比對
+        for c in reversed(resolved):
+            lead = c.get("leading_candidate", {}) or {}
+            if isinstance(lead, str):
+                lead = {"name": lead}
+            name = lead.get("name", "").lower()
+            dish = lead.get("dish", "").lower()
+            basis = (lead.get("basis") or lead.get("reason") or "").lower()
+            cid = str(c.get("case_id", "")).lower()
+
+            if q in name or q in dish or q in basis or q in cid:
+                return c
+
+        # 情境 4: Markdown 報告全文搜尋比對
+        for c in reversed(resolved):
+            json_path = c.get("_json_path")
+            case_id = c.get("case_id")
+            md_path = self.get_case_md_path(case_id, json_path)
+            if md_path and os.path.exists(md_path):
+                try:
+                    with open(md_path, "r", encoding="utf-8", errors="ignore") as f:
+                        md_content = f.read().lower()
+                    if q in md_content:
+                        return c
+                except Exception:
+                    pass
+
+        return None

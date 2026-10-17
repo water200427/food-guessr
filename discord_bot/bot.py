@@ -262,22 +262,25 @@ async def watch_case_resolutions():
                                 if maps_url:
                                     reply_lines.append(maps_url)
 
-                                if github_url:
-                                    reply_lines.append(f"📝 調查報告：{github_url}")
+                                # 依據設定決定是否自動附帶 Markdown 報告附件 (預設先取消展示，保持回覆清爽)
+                                file_attachment = None
+                                if getattr(config, "auto_attach_report", False):
+                                    if github_url:
+                                        reply_lines.append(f"📝 調查報告：{github_url}")
+                                    if md_path and os.path.exists(md_path):
+                                        file_attachment = discord.File(md_path, filename=os.path.basename(md_path))
+                                else:
+                                    reply_lines.append(f"*(輸入 `!report` 或 `!report {case_id}` 可調出完整調查報告)*")
 
                                 if config.reply_footer:
                                     reply_lines.append(config.reply_footer)
-
-                                file_attachment = None
-                                if md_path and os.path.exists(md_path):
-                                    file_attachment = discord.File(md_path, filename=os.path.basename(md_path))
 
                                 if file_attachment:
                                     await msg.reply("\n".join(reply_lines), file=file_attachment, mention_author=False)
                                 else:
                                     await msg.reply("\n".join(reply_lines), mention_author=False)
                                 await set_single_reaction(msg, "✅")
-                                print(f"[貓貓偵探 🎉] 案件-{case_id} 已成功回傳 Discord (附 Markdown 報告)！")
+                                print(f"[貓貓偵探 🎉] 案件-{case_id} 已成功回傳 Discord！")
                         except Exception as e:
                             print(f"[貓貓偵探 ❌] 案件回報 Discord 失敗: {e}")
                 case_manager.mark_case_notified(json_path, case_data)
@@ -484,12 +487,15 @@ async def on_message(message: discord.Message):
                 ex_json_path = existing_case.get("_json_path")
                 ex_md_path = case_manager.get_case_md_path(ex_case_id, ex_json_path)
                 ex_file = None
-                if ex_md_path:
-                    ex_gh_url = case_manager.get_github_md_url(ex_md_path)
-                    if ex_gh_url:
-                        reply_lines.append(f"📝 調查報告：{ex_gh_url}")
-                    if os.path.exists(ex_md_path):
-                        ex_file = discord.File(ex_md_path, filename=os.path.basename(ex_md_path))
+                if getattr(config, "auto_attach_report", False):
+                    if ex_md_path:
+                        ex_gh_url = case_manager.get_github_md_url(ex_md_path)
+                        if ex_gh_url:
+                            reply_lines.append(f"📝 調查報告：{ex_gh_url}")
+                        if os.path.exists(ex_md_path):
+                            ex_file = discord.File(ex_md_path, filename=os.path.basename(ex_md_path))
+                else:
+                    reply_lines.append(f"*(輸入 `!report` 或 `!report {ex_case_id}` 可調出完整調查報告)*")
 
                 if config.reply_footer:
                     reply_lines.append(config.reply_footer)
@@ -544,12 +550,15 @@ async def on_message(message: discord.Message):
                         ex_json_path = existing_case.get("_json_path")
                         ex_md_path = case_manager.get_case_md_path(ex_case_id, ex_json_path)
                         ex_file = None
-                        if ex_md_path:
-                            ex_gh_url = case_manager.get_github_md_url(ex_md_path)
-                            if ex_gh_url:
-                                reply_lines.append(f"📝 調查報告：{ex_gh_url}")
-                            if os.path.exists(ex_md_path):
-                                ex_file = discord.File(ex_md_path, filename=os.path.basename(ex_md_path))
+                        if getattr(config, "auto_attach_report", False):
+                            if ex_md_path:
+                                ex_gh_url = case_manager.get_github_md_url(ex_md_path)
+                                if ex_gh_url:
+                                    reply_lines.append(f"📝 調查報告：{ex_gh_url}")
+                                if os.path.exists(ex_md_path):
+                                    ex_file = discord.File(ex_md_path, filename=os.path.basename(ex_md_path))
+                        else:
+                            reply_lines.append(f"*(輸入 `!report` 或 `!report {ex_case_id}` 可調出完整調查報告)*")
 
                         if config.reply_footer:
                             reply_lines.append(config.reply_footer)
@@ -604,7 +613,70 @@ async def on_message(message: discord.Message):
             print("[貓貓偵探 🛑] 已解除專屬日誌頻道綁定。")
             return
 
-        # 3. 處理日誌查詢指令 (!log, !logs, !logfile 或 @這哪家 log)
+        # 3. 處理調查報告調出指令 (!report, !rep, 或 @這哪家 report)
+        if clean_content.startswith("!report") or clean_content.startswith("!rep") or (is_mentioned and "report" in clean_content):
+            target_case = None
+
+            # 情境 A: 使用者引用了一則特定的歷史訊息
+            if message.reference and message.reference.message_id:
+                target_case = case_manager.find_case_by_message(message.reference.message_id)
+
+            # 情境 B: 解析參數進行智慧查詢 (空字串 ➜ 最新一案；關鍵字 ➜ 編號、店名、品項模糊比對)
+            raw_query = ""
+            if not target_case:
+                import re
+                raw_query = re.sub(r"^(!report|!rep|<@!?\d+>\s*report)\s*", "", message.content.strip(), flags=re.IGNORECASE).strip()
+                target_case = case_manager.find_case_by_query(raw_query)
+
+            if target_case:
+                cid = target_case.get("case_id")
+                json_path = target_case.get("_json_path")
+                md_path = case_manager.get_case_md_path(cid, json_path)
+                github_url = case_manager.get_github_md_url(md_path) if md_path else ""
+
+                lead = target_case.get("leading_candidate", {}) or {}
+                if isinstance(lead, str):
+                    lead = {"name": lead}
+                c_name = lead.get("name") or target_case.get("case_title") or f"案件-{cid}"
+
+                rep_lines = [
+                    f"📄 **【案件-{cid} 調查報告】{c_name}**"
+                ]
+                if github_url:
+                    rep_lines.append(f"📝 GitHub 線上公開閱讀：{github_url}")
+
+                file_att = None
+                if md_path and os.path.exists(md_path):
+                    file_att = discord.File(md_path, filename=os.path.basename(md_path))
+
+                if file_att:
+                    await message.reply("\n".join(rep_lines), file=file_att, mention_author=False)
+                else:
+                    await message.reply("\n".join(rep_lines), mention_author=False)
+                return
+            else:
+                # 查無結果，友善提示最近結案清單
+                recent = case_manager.get_recent_resolved_cases(limit=3)
+                suggestions = []
+                for rc in recent:
+                    rc_id = rc.get("case_id")
+                    rc_lead = rc.get("leading_candidate", {}) or {}
+                    if isinstance(rc_lead, str):
+                        rc_lead = {"name": rc_lead}
+                    rc_name = rc_lead.get("name") or f"案件-{rc_id}"
+                    short_name = rc_name[:25] + "..." if len(rc_name) > 25 else rc_name
+                    suggestions.append(f"• 案件-{rc_id}: **{short_name}** (可輸入 `!report {rc_id}`)")
+
+                sugg_text = "\n".join(suggestions)
+                not_found_msg = (
+                    f"⚠️ 找不到與「{raw_query}」相關的案件調查報告！\n\n"
+                    f"💡 **最近結案的案件有**：\n{sugg_text}\n\n"
+                    f"*(直接輸入 `!report` 可調出最新一案報告)*"
+                )
+                await message.reply(not_found_msg, mention_author=False)
+                return
+
+        # 4. 處理日誌查詢指令 (!log, !logs, !logfile 或 @這哪家 log)
         if clean_content.startswith("!log") or (is_mentioned and "log" in clean_content):
             # 情境 A: 請求完整日誌檔附件 (!logfile, !log file, !log all)
             if "file" in clean_content or "all" in clean_content:
