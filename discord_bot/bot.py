@@ -127,6 +127,10 @@ def extract_maps_url(lead_dict: dict) -> str:
     import re
     import urllib.parse
 
+    # 0. 若明確標註非餐廳，或名稱包含非餐廳/非實體餐廳，絕對不產生 Google 地點連結
+    if lead_dict.get("is_restaurant") is False or "非餐廳" in lead_dict.get("name", "") or "非實體餐廳" in lead_dict.get("name", ""):
+        return ""
+
     raw_url = (
         lead_dict.get("google_maps_url") or
         lead_dict.get("maps_url") or
@@ -156,10 +160,10 @@ def extract_maps_url(lead_dict: dict) -> str:
             clean_q = urllib.parse.unquote(match.group(1))
             return f"https://maps.google.com/?q={clean_q}"
 
-    # 4. 若無直接網址，以店名或地址產生簡短乾淨連結
+    # 4. 若無直接網址但有明確實體地址或特定餐廳店名時，產生簡短乾淨連結
     if not raw_url:
-        target = lead_dict.get("name") or lead_dict.get("address") or ""
-        if target:
+        target = lead_dict.get("address") or lead_dict.get("name") or ""
+        if target and not any(k in target for k in ["非餐廳", "非實體", "直播", "未確認"]):
             return f"https://maps.google.com/?q={target}"
         return ""
 
@@ -234,13 +238,16 @@ async def watch_case_resolutions():
                                         case_manager.mark_case_notified(json_path, case_data)
                                         continue
 
-                                    reply_lines = [
-                                        f"🎉 已被 {correct_msg.author.mention} 搶先答對囉！",
-                                        display_name,
-                                        maps_url
-                                    ]
-                                else:
-                                    reply_lines = [display_name, maps_url]
+                                    if correct_msg:
+                                        reply_lines = [
+                                            f"🎉 已被 {correct_msg.author.mention} 搶先答對囉！",
+                                            display_name
+                                        ]
+                                    else:
+                                        reply_lines = [display_name]
+
+                                if maps_url:
+                                    reply_lines.append(maps_url)
 
                                 if config.reply_footer:
                                     reply_lines.append(config.reply_footer)
