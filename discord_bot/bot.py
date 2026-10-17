@@ -316,6 +316,71 @@ def get_sanitized_logs(max_lines: int = 15) -> str:
     except Exception as e:
         return f"讀取日誌失敗: {e}"
 
+async def stream_logs_to_channel():
+    """
+    背景任務：每 2~3 秒檢查 scratch/bot.log，若有新紀錄且已設定 log_channel_id，
+    自動安全脫敏後同步發送至專屬日誌頻道！
+    """
+    await client.wait_until_ready()
+    last_pos = 0
+    if os.path.exists(LOG_FILE_PATH):
+        try:
+            last_pos = os.path.getsize(LOG_FILE_PATH)
+        except Exception:
+            last_pos = 0
+
+    while not client.is_closed():
+        try:
+            if config.log_channel_id and os.path.exists(LOG_FILE_PATH):
+                current_size = os.path.getsize(LOG_FILE_PATH)
+                if current_size < last_pos:
+                    last_pos = 0
+
+                if current_size > last_pos:
+                    with open(LOG_FILE_PATH, "r", encoding="utf-8", errors="ignore") as f:
+                        f.seek(last_pos)
+                        new_content = f.read()
+                        last_pos = f.tell()
+
+                    if new_content.strip():
+                        # 安全脫敏
+                        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+                        sanitized = new_content.replace(project_root, ".")
+                        sanitized = sanitized.replace(project_root.replace("\\", "/"), ".")
+                        import re
+                        sanitized = re.sub(r"[a-zA-Z]:[/\\][Uu]sers[/\\][^\s/\\\"']+", "~", sanitized)
+
+                        # 切割成每段最多 1750 字元
+                        lines = sanitized.strip().splitlines()
+                        chunks = []
+                        current_chunk = []
+                        current_len = 0
+                        for line in lines:
+                            if current_len + len(line) + 1 > 1750:
+                                chunks.append("\n".join(current_chunk))
+                                current_chunk = [line]
+                                current_len = len(line)
+                            else:
+                                current_chunk.append(line)
+                                current_len += len(line) + 1
+                        if current_chunk:
+                            chunks.append("\n".join(current_chunk))
+
+                        # 取得頻道發送
+                        target_channel = client.get_channel(config.log_channel_id)
+                        if not target_channel:
+                            try:
+                                target_channel = await client.fetch_channel(config.log_channel_id)
+                            except Exception:
+                                target_channel = None
+
+                        if target_channel:
+                            for chk in chunks:
+                                await target_channel.send(f"```log\n{chk}\n```")
+        except Exception:
+            pass
+        await asyncio.sleep(2.5)
+
 @client.event
 async def on_ready():
     print("=" * 55)
@@ -323,8 +388,13 @@ async def on_ready():
     print(f"[+] 機器人帳號: {client.user} (ID: {client.user.id})")
     print(f"[+] 觸發模式: 發圖標註 @這哪家 或 回覆照片 @這哪家")
     print(f"[+] 運作架構: 純本地秒驗證 + Antigravity 獨立新對話深度接力")
+    if config.log_channel_id:
+        print(f"[+] 專屬日誌轉播頻道已設定: ID {config.log_channel_id}")
+    else:
+        print(f"[+] 尚未綁定日誌頻道 (可在目標頻道輸入 !setlogchannel 開啟轉播)")
     print("=" * 55)
     client.loop.create_task(watch_case_resolutions())
+    client.loop.create_task(stream_logs_to_channel())
 
 @client.event
 async def on_error(event, *args, **kwargs):
@@ -468,7 +538,28 @@ async def on_message(message: discord.Message):
     if message.content:
         clean_content = message.content.strip().lower()
 
-        # 1. 處理日誌查詢指令 (!log, !logs, !logfile 或 @這哪家 log)
+        # 1. 設定專屬日誌轉播頻道 (!setlogchannel, !bindlog 或 @這哪家 setlog)
+        if clean_content.startswith("!setlogchannel") or clean_content.startswith("!bindlog") or (is_mentioned and "setlog" in clean_content):
+            config.log_channel_id = message.channel.id
+            config.save()
+            ch_name = getattr(message.channel, "name", str(message.channel.id))
+            await message.reply(
+                f"✅ **已成功將此頻道（#{ch_name}）設定為專屬日誌頻道！**\n"
+                f"📡 後續所有貓貓偵探的即時物證分析、CoT 排查進度與系統日誌將會在此頻道同步轉播！🐾",
+                mention_author=False
+            )
+            print(f"[貓貓偵探 📡] 已設定專屬日誌頻道: #{ch_name} (ID: {message.channel.id})")
+            return
+
+        # 2. 解除專屬日誌頻道 (!unsetlogchannel 或 @這哪家 unsetlog)
+        if clean_content.startswith("!unsetlogchannel") or (is_mentioned and "unsetlog" in clean_content):
+            config.log_channel_id = None
+            config.save()
+            await message.reply("🛑 已解除專屬日誌頻道綁定，停止日誌轉播！", mention_author=False)
+            print("[貓貓偵探 🛑] 已解除專屬日誌頻道綁定。")
+            return
+
+        # 3. 處理日誌查詢指令 (!log, !logs, !logfile 或 @這哪家 log)
         if clean_content.startswith("!log") or (is_mentioned and "log" in clean_content):
             # 情境 A: 請求完整日誌檔附件 (!logfile, !log file, !log all)
             if "file" in clean_content or "all" in clean_content:
@@ -493,19 +584,19 @@ async def on_message(message: discord.Message):
             reply_text = (
                 f"📜 **貓貓偵探執行日誌 (最新 {lines_count} 行)**：\n"
                 f"```log\n{logs}\n```\n"
-                f"*(提示：可輸入 `!log 30` 查看更多行，或輸入 `!logfile` 取得完整日誌檔)*"
+                f"*(提示：在目標頻道輸入 `!setlogchannel` 可開啟即時自動轉播；亦可輸入 `!logfile` 取得完整日誌檔)*"
             )
             await message.reply(reply_text, mention_author=False)
             return
 
-        # 2. 處理狀態查詢指令 (!status 或 @這哪家 status)
+        # 4. 處理狀態查詢指令 (!status 或 @這哪家 status)
         if "!status" in clean_content or (is_mentioned and "status" in clean_content):
             active_cases = case_manager.get_investigating_cases()
             if active_cases:
                 cases_str = "、".join([f"案件-{c.get('case_id')}" for c in active_cases])
                 await message.reply(f"📋 目前共有 {len(active_cases)} 個疑難案件正在由 Antigravity 進行深度微型物證排查中：\n`{cases_str}`\n*(可輸入 `!log` 查看目前即時日誌)*", mention_author=False)
             else:
-                await message.reply("✨ 目前沒有任何排查中的案件，所有照片皆已結案！\n*(可輸入 `!log` 查看最近執行的歷史日誌)*", mention_author=False)
+                await message.reply("✨ 目前沒有任何排查中的案件，所有照片皆已結案！\n*(可在欲轉播的頻道輸入 `!setlogchannel` 開啟即時動態串流)*", mention_author=False)
             return
 
 def main():
