@@ -283,6 +283,39 @@ async def watch_case_resolutions():
             print(f"[貓貓偵探 ⚠️] 監聽案件結案異常: {e}")
         await asyncio.sleep(5)
 
+def get_sanitized_logs(max_lines: int = 15) -> str:
+    """
+    讀取最新 log 並進行安全脫敏（自動替換本機 Windows 路徑為相對路徑）
+    """
+    if not os.path.exists(LOG_FILE_PATH):
+        return "（目前尚無日誌檔案）"
+    try:
+        with open(LOG_FILE_PATH, "r", encoding="utf-8", errors="ignore") as f:
+            lines = f.readlines()
+        if not lines:
+            return "（日誌內容為空）"
+        selected = lines[-max_lines:]
+        content = "".join(selected)
+
+        # 隱私脫敏：替換專案絕對路徑為相對路徑
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        content = content.replace(project_root, ".")
+        content = content.replace(project_root.replace("\\", "/"), ".")
+
+        # 隱私脫敏：替換使用者本機目錄 (如 C:\Users\water\...)
+        import re
+        content = re.sub(r"[a-zA-Z]:[/\\][Uu]sers[/\\][^\s/\\\"']+", "~", content)
+
+        # 控制長度不超過 Discord 2000 字元上限
+        if len(content) > 1800:
+            content = content[-1800:]
+            first_newline = content.find("\n")
+            if first_newline != -1:
+                content = content[first_newline + 1:]
+        return content.strip()
+    except Exception as e:
+        return f"讀取日誌失敗: {e}"
+
 @client.event
 async def on_ready():
     print("=" * 55)
@@ -431,16 +464,48 @@ async def on_message(message: discord.Message):
         except Exception as e:
             print(f"[貓貓偵探 ⚠️] 解析引用歷史訊息失敗: {e}")
 
-    # 處理狀態查詢指令 (!status 或 @這哪家 status)
+    # 處理狀態與日誌查詢指令 (!status, !log, !logs, !logfile)
     if message.content:
         clean_content = message.content.strip().lower()
+
+        # 1. 處理日誌查詢指令 (!log, !logs, !logfile 或 @這哪家 log)
+        if clean_content.startswith("!log") or (is_mentioned and "log" in clean_content):
+            # 情境 A: 請求完整日誌檔附件 (!logfile, !log file, !log all)
+            if "file" in clean_content or "all" in clean_content:
+                if os.path.exists(LOG_FILE_PATH):
+                    file_attachment = discord.File(LOG_FILE_PATH, filename="bot.log")
+                    await message.reply("📑 這是貓貓偵探目前的完整執行日誌：", file=file_attachment, mention_author=False)
+                else:
+                    await message.reply("⚠️ 目前尚無日誌檔案！", mention_author=False)
+                return
+
+            # 情境 B: 顯示最新幾行日誌 (預設 15 行，支援 !log 20、!log 30)
+            import re
+            lines_count = 15
+            match = re.search(r"log\w*\s+(\d+)", clean_content)
+            if match:
+                try:
+                    lines_count = max(3, min(35, int(match.group(1))))
+                except Exception:
+                    lines_count = 15
+
+            logs = get_sanitized_logs(lines_count)
+            reply_text = (
+                f"📜 **貓貓偵探執行日誌 (最新 {lines_count} 行)**：\n"
+                f"```log\n{logs}\n```\n"
+                f"*(提示：可輸入 `!log 30` 查看更多行，或輸入 `!logfile` 取得完整日誌檔)*"
+            )
+            await message.reply(reply_text, mention_author=False)
+            return
+
+        # 2. 處理狀態查詢指令 (!status 或 @這哪家 status)
         if "!status" in clean_content or (is_mentioned and "status" in clean_content):
             active_cases = case_manager.get_investigating_cases()
             if active_cases:
                 cases_str = "、".join([f"案件-{c.get('case_id')}" for c in active_cases])
-                await message.reply(f"📋 目前共有 {len(active_cases)} 個疑難案件正在由 Antigravity 進行深度微型物證排查中：\n`{cases_str}`", mention_author=False)
+                await message.reply(f"📋 目前共有 {len(active_cases)} 個疑難案件正在由 Antigravity 進行深度微型物證排查中：\n`{cases_str}`\n*(可輸入 `!log` 查看目前即時日誌)*", mention_author=False)
             else:
-                await message.reply("✨ 目前沒有任何排查中的案件，所有照片皆已結案！", mention_author=False)
+                await message.reply("✨ 目前沒有任何排查中的案件，所有照片皆已結案！\n*(可輸入 `!log` 查看最近執行的歷史日誌)*", mention_author=False)
             return
 
 def main():
