@@ -1,0 +1,32 @@
+{
+  "case_id": "023",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 852925615799009321,
+    "message_id": 1560932402279489546,
+    "author": "water200427",
+    "created_at": 1792225686.9366772
+  },
+  "status": "resolved",
+  "guesses": [
+    {
+      "name": "龍人ラーメン台湾本店",
+      "maps_url": "https://maps.app.goo.gl/2pE6FEddVwVVRntp7",
+      "status": "confirmed"
+    },
+    {
+      "name": "吾流ラーメン",
+      "maps_url": "https://maps.app.goo.gl/duVmJJzGJp44arYk7",
+      "status": "co-located_brand"
+    }
+  ],
+  "exclusions": [],
+  "leading_candidate": {
+    "name": "龍人ラーメン台湾本店",
+    "maps_url": "https://maps.app.goo.gl/2pE6FEddVwVVRntp7",
+    "confidence": "高",
+    "notes": "台北市松山區市民大道五段7號1樓。與深夜二毛作品牌「吾流ラーメン 夜間部」共用同一店面空間，吧台隔板貼有吾流夜間部宣傳貼紙；餐點為龍人拉麵招牌之二郎系豚骨醬油拉麵。"
+  },
+  "resolved": true
+}
