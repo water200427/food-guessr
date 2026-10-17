@@ -1,0 +1,28 @@
+{
+  "case_id": "017",
+  "case_title": "Discord 上傳照片辨識 - 非餐廳（bilibili 主播「这里是鱼摆摆」直播截圖）",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 853554271638126596,
+    "message_id": 1560819675754139650,
+    "author": "water200427",
+    "created_at": 1792198811.5947676
+  },
+  "status": "resolved",
+  "guesses": [],
+  "exclusions": [],
+  "leading_candidate": {
+    "name": "這是 bilibili 主播「这里是鱼摆摆」之直播截圖（非實體餐廳）",
+    "address": "線上直播間（無實體地址）",
+    "maps_url": "",
+    "google_maps_url": "",
+    "bilibili_space": "https://space.bilibili.com/1385261635",
+    "bilibili_live": "https://live.bilibili.com/1790090490",
+    "confidence": "高",
+    "is_restaurant": false,
+    "dish": "無食物（純人物直播截圖）",
+    "status_current": "非餐飲店家"
+  },
+  "resolved": true,
+  "discord_notified": true
+}
