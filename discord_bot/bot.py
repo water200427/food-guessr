@@ -187,6 +187,8 @@ async def watch_case_resolutions():
                 channel_id = meta.get("channel_id")
                 message_id = meta.get("message_id")
                 lead = case_data.get("leading_candidate", {}) or {}
+                if isinstance(lead, str):
+                    lead = {"name": lead}
                 name = lead.get("name", "").strip()
                 maps_url = extract_maps_url(lead)
                 status = case_data.get("status")
@@ -238,23 +240,42 @@ async def watch_case_resolutions():
                                         case_manager.mark_case_notified(json_path, case_data)
                                         continue
 
-                                    if correct_msg:
-                                        reply_lines = [
-                                            f"🎉 已被 {correct_msg.author.mention} 搶先答對囉！",
-                                            display_name
-                                        ]
-                                    else:
-                                        reply_lines = [display_name]
+                                    reply_lines = [
+                                        f"🎉 已被 {correct_msg.author.mention} 搶先答對囉！",
+                                        display_name
+                                    ]
+                                else:
+                                    reply_lines = [display_name]
+
+                                # 取得該案 Markdown 報告檔案並自動同步 GitHub (Public)
+                                md_path = case_manager.get_case_md_path(case_id, json_path)
+                                github_url = None
+                                if md_path:
+                                    try:
+                                        await asyncio.to_thread(case_manager.git_commit_and_push, case_id)
+                                    except Exception as ge:
+                                        print(f"[貓貓偵探 ⚠️] 自動 push GitHub 異常: {ge}")
+                                    github_url = case_manager.get_github_md_url(md_path)
 
                                 if maps_url:
                                     reply_lines.append(maps_url)
 
+                                if github_url:
+                                    reply_lines.append(f"📝 調查報告：{github_url}")
+
                                 if config.reply_footer:
                                     reply_lines.append(config.reply_footer)
 
-                                await msg.reply("\n".join(reply_lines), mention_author=False)
+                                file_attachment = None
+                                if md_path and os.path.exists(md_path):
+                                    file_attachment = discord.File(md_path, filename=os.path.basename(md_path))
+
+                                if file_attachment:
+                                    await msg.reply("\n".join(reply_lines), file=file_attachment, mention_author=False)
+                                else:
+                                    await msg.reply("\n".join(reply_lines), mention_author=False)
                                 await set_single_reaction(msg, "✅")
-                                print(f"[貓貓偵探 🎉] 案件-{case_id} 已成功回傳 Discord！")
+                                print(f"[貓貓偵探 🎉] 案件-{case_id} 已成功回傳 Discord (附 Markdown 報告)！")
                         except Exception as e:
                             print(f"[貓貓偵探 ❌] 案件回報 Discord 失敗: {e}")
                 case_manager.mark_case_notified(json_path, case_data)
@@ -306,10 +327,28 @@ async def on_message(message: discord.Message):
             ex_status = existing_case.get("status")
             if existing_case.get("resolved") and ex_name:
                 display_name = ex_name if ex_name.startswith("這是") else f"這是 {ex_name}"
-                reply_lines = [display_name, extract_maps_url(ex_lead)]
+                reply_lines = [display_name]
+                ex_maps = extract_maps_url(ex_lead)
+                if ex_maps:
+                    reply_lines.append(ex_maps)
+
+                ex_case_id = existing_case.get("case_id")
+                ex_json_path = existing_case.get("_json_path")
+                ex_md_path = case_manager.get_case_md_path(ex_case_id, ex_json_path)
+                ex_file = None
+                if ex_md_path:
+                    ex_gh_url = case_manager.get_github_md_url(ex_md_path)
+                    if ex_gh_url:
+                        reply_lines.append(f"📝 調查報告：{ex_gh_url}")
+                    if os.path.exists(ex_md_path):
+                        ex_file = discord.File(ex_md_path, filename=os.path.basename(ex_md_path))
+
                 if config.reply_footer:
                     reply_lines.append(config.reply_footer)
-                await message.reply("\n".join(reply_lines), mention_author=False)
+                if ex_file:
+                    await message.reply("\n".join(reply_lines), file=ex_file, mention_author=False)
+                else:
+                    await message.reply("\n".join(reply_lines), mention_author=False)
                 await set_single_reaction(message, "✅")
                 return
             elif ex_status == "investigating":
@@ -348,10 +387,28 @@ async def on_message(message: discord.Message):
                     ex_status = existing_case.get("status")
                     if existing_case.get("resolved") and ex_name:
                         display_name = ex_name if ex_name.startswith("這是") else f"這是 {ex_name}"
-                        reply_lines = [display_name, extract_maps_url(ex_lead)]
+                        reply_lines = [display_name]
+                        ex_maps = extract_maps_url(ex_lead)
+                        if ex_maps:
+                            reply_lines.append(ex_maps)
+
+                        ex_case_id = existing_case.get("case_id")
+                        ex_json_path = existing_case.get("_json_path")
+                        ex_md_path = case_manager.get_case_md_path(ex_case_id, ex_json_path)
+                        ex_file = None
+                        if ex_md_path:
+                            ex_gh_url = case_manager.get_github_md_url(ex_md_path)
+                            if ex_gh_url:
+                                reply_lines.append(f"📝 調查報告：{ex_gh_url}")
+                            if os.path.exists(ex_md_path):
+                                ex_file = discord.File(ex_md_path, filename=os.path.basename(ex_md_path))
+
                         if config.reply_footer:
                             reply_lines.append(config.reply_footer)
-                        await message.reply("\n".join(reply_lines), mention_author=False)
+                        if ex_file:
+                            await message.reply("\n".join(reply_lines), file=ex_file, mention_author=False)
+                        else:
+                            await message.reply("\n".join(reply_lines), mention_author=False)
                         await set_single_reaction(message, "✅")
                         return
                     elif ex_status == "investigating":

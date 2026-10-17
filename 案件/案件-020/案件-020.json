@@ -1,0 +1,26 @@
+{
+  "case_id": "020",
+  "case_title": "Discord 上傳照片辨識 - 日本 7-Eleven「カラーチョコ＆ホイップ」彩色巧克力米鮮奶油三明治",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 852925615799009321,
+    "message_id": 1560918395266793594,
+    "author": "kevin_112",
+    "created_at": 1792222352.9176922
+  },
+  "status": "resolved",
+  "guesses": [],
+  "exclusions": [],
+  "leading_candidate": {
+    "name": "日本 7-Eleven（セブン-イレブン）「カラーチョコ＆ホイップ」彩色巧克力米鮮奶油三明治（超商冷藏三明治，非獨立餐廳）",
+    "address": "日本全國 7-Eleven 便利商店冷藏櫃（量產零售商品，非單一特定餐廳門市）",
+    "maps_url": "",
+    "google_maps_url": "",
+    "confidence": "高",
+    "is_restaurant": false,
+    "dish": "カラーチョコ＆ホイップ（Chocolate Sprinkles & Whipped Cream，彩色巧克力米＆鮮奶油三明治）",
+    "status_current": "日本 7-Eleven 2026年爆紅甜點三明治（冷藏開架商品）"
+  },
+  "resolved": true,
+  "discord_notified": true
+}

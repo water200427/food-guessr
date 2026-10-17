@@ -15,6 +15,7 @@
    - 當收到來自 Discord 機器人的新案件時，主代理應全自動接手，並在目前對話中**以清晰分段「現場直播」完整的思考與調查歷程**（包含可見物證觀察、Chrome 9222 Google Lens 比對動態、候選名單排查與排除理由）。
    - **獨立新對話查案（省 Token 最佳實踐）**：主代理可執行 `agentapi new-conversation --title="案件-00X 調查 (...)" "<交接提示詞>"` 為該案開啟專屬對話（0 Token 起跳）。新對話獨立完成調查並更新 `案件/案件-00X/案件-00X.json`（`status: "resolved", resolved: true`）與對應 `.md` 檔案，由 Discord Bot 背景輪詢自動結案。
    - 調查完成後更新該案的 `.json`（填寫 `leading_candidate`、`resolved: true`、`status: "resolved"`）與對應 `.md` 檔案，讓 Discord 自動感應並回傳結案。
+   - **Discord 結案自動回傳規範**：Discord Bot 於結案回傳時，會自動執行 `git add/commit/push` 將報告同步至 GitHub（確保公開 Public 可存取），並在 Discord 回覆中附帶**該案件的 Markdown 報告檔案（檔案附件）**與**GitHub 公開線上閱讀連結**。
    - 若使用者手動指示「請調查最新案件」或「請處理案件-00X」，亦依循上述流程辦理。
 
 ## Discord Bot 守護進程管理規範

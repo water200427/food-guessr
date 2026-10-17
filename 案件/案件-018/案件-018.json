@@ -1,0 +1,26 @@
+{
+  "case_id": "018",
+  "case_title": "Discord 上傳照片辨識 - 非餐廳（2026年10月新番動畫《FX戰士久留美》第3話截圖）",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 853554271638126596,
+    "message_id": 1560824916184408085,
+    "author": "water200427",
+    "created_at": 1792200129.8997483
+  },
+  "status": "resolved",
+  "guesses": [],
+  "exclusions": [],
+  "leading_candidate": {
+    "name": "這是 2026年10月新番動畫《FX戰士久留美》第3話截圖（角色：高根康子 / 迷因名台詞：要漲就不要給我跌啊，非實體餐廳）",
+    "address": "電視動畫截圖（無實體地址）",
+    "maps_url": "",
+    "google_maps_url": "",
+    "confidence": "高",
+    "is_restaurant": false,
+    "dish": "無食物（動漫截圖迷因）",
+    "status_current": "非餐飲店家"
+  },
+  "resolved": true,
+  "discord_notified": true
+}

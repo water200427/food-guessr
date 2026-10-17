@@ -1,0 +1,25 @@
+{
+  "case_id": "021",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 852925615799009321,
+    "message_id": 1560918486891503786,
+    "author": "smile2449",
+    "created_at": 1792222369.0641904
+  },
+  "status": "resolved",
+  "guesses": [
+    "島語自助餐廳（台北漢來大飯店）",
+    "INPARADISE 饗饗（微風信義店）"
+  ],
+  "exclusions": [],
+  "leading_candidate": {
+    "name": "島語自助餐廳（台北漢來大飯店）",
+    "url": "https://maps.app.goo.gl/Q9qGvwV4dd7Fr3jp7",
+    "confidence": "中",
+    "basis": "照片呈現「黑芝麻炙燒鮪魚魚子醬小塔」與「涼拌鯛魚皮小黃瓜」組合之自由取餐盤面，高度指向頂級海鮮自助百匯或外燴冷盤區。南港漢來『島語自助餐廳』兼具漢來招牌海鮮冷盤與魚子醬 Fine Dining 一口食小塔，現場淺灰大理石桌面與純白瓷盤吻合度最高。"
+  },
+  "resolved": true,
+  "discord_notified": true
+}

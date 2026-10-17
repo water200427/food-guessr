@@ -309,3 +309,74 @@ class CaseManager:
                         print(f"[CaseManager] 案件-{data.get('case_id')} 已達 30 分鐘停損時限，自動標記為尚無法確認。")
             except Exception as e:
                 print(f"[CaseManager] 檢查停損異常: {e}")
+
+    def get_case_md_path(self, case_id: str, json_path: str = None) -> Optional[str]:
+        """
+        尋找案件對應的 Markdown 報告檔案
+        """
+        if json_path and os.path.exists(json_path):
+            case_dir = os.path.dirname(json_path)
+            # 優先找以 案件-{case_id} 開頭的 md
+            for fname in os.listdir(case_dir):
+                if fname.startswith(f"案件-{case_id}") and fname.endswith(".md"):
+                    return os.path.join(case_dir, fname)
+            # 其次找目錄下任一非模板的 md
+            for fname in os.listdir(case_dir):
+                if fname.endswith(".md") and "模板" not in fname:
+                    return os.path.join(case_dir, fname)
+
+        # 遍歷案件目錄子資料夾
+        target_dir = os.path.join(self.cases_dir, f"案件-{case_id}")
+        if os.path.exists(target_dir):
+            for fname in os.listdir(target_dir):
+                if fname.endswith(".md") and "模板" not in fname:
+                    return os.path.join(target_dir, fname)
+
+        # 兜底檢查案件根目錄
+        root_md = os.path.join(self.cases_dir, f"案件-{case_id}.md")
+        if os.path.exists(root_md):
+            return root_md
+
+        return None
+
+    def get_github_md_url(self, md_path: str, repo_owner_name: str = "water200427/food-guessr", branch: str = "main") -> Optional[str]:
+        """
+        取得 GitHub 公開查看 Markdown 報告的完整網址 (含 URL 編碼避免特殊字元截斷)
+        """
+        if not md_path or not os.path.exists(md_path):
+            return None
+        import urllib.parse
+        try:
+            rel_path = os.path.relpath(md_path, self.project_root).replace("\\", "/")
+            quoted_rel = urllib.parse.quote(rel_path)
+            return f"https://github.com/{repo_owner_name}/blob/{branch}/{quoted_rel}"
+        except Exception:
+            return None
+
+    def git_commit_and_push(self, case_id: str) -> bool:
+        """
+        自動將案件變更 git add, git commit 並 git push 到 GitHub 遠端倉庫，確保為 public
+        """
+        import subprocess
+        try:
+            # 1. 加入案件目錄與可能的新檔案
+            subprocess.run(["git", "add", "案件/"], cwd=self.project_root, check=False)
+            
+            # 2. 檢查是否有需要 commit 的內容
+            diff_res = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=self.project_root)
+            if diff_res.returncode != 0:
+                commit_msg = f"docs(case-{case_id}): 完成案件-{case_id} 調查報告"
+                subprocess.run(["git", "commit", "-m", commit_msg], cwd=self.project_root, check=False)
+                print(f"[CaseManager 🐙] 已自動 commit 案件-{case_id} 報告！")
+            
+            # 3. 推送至遠端 GitHub 確保 public
+            push_res = subprocess.run(["git", "push", "origin", "main"], cwd=self.project_root, capture_output=True, text=True, check=False)
+            if push_res.returncode == 0:
+                print(f"[CaseManager 🚀] 案件-{case_id} 報告已成功 push 至 GitHub (Public)！")
+                return True
+            else:
+                print(f"[CaseManager ⚠️] git push 異常: {push_res.stderr or push_res.stdout}")
+                return False
+        except Exception as e:
+            print(f"[CaseManager ⚠️] 自動執行 git commit & push 失敗: {e}")
+            return False

@@ -1,0 +1,26 @@
+{
+  "case_id": "019",
+  "case_title": "Discord 上傳照片辨識 - 非餐廳（日本電視動畫《葬送的芙莉蓮》第25話截圖）",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 852925615799009321,
+    "message_id": 1560917844236177479,
+    "author": "coldjoke",
+    "created_at": 1792222216.2385116
+  },
+  "status": "resolved",
+  "guesses": [],
+  "exclusions": [],
+  "leading_candidate": {
+    "name": "非餐廳或食物（日本人氣電視動畫《葬送的芙莉蓮》第 25 話「致命的隙」劇照截圖，角色：芙莉蓮複製體 vs 費倫）",
+    "address": "電視動畫截圖（無實體地址）",
+    "maps_url": "",
+    "google_maps_url": "",
+    "confidence": "高",
+    "is_restaurant": false,
+    "dish": "無食物（動漫截圖）",
+    "status_current": "非餐飲店家"
+  },
+  "resolved": true,
+  "discord_notified": true
+}
