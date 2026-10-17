@@ -55,10 +55,12 @@ import discord
 from config import DiscordBotConfig
 from services.food_detector import FoodDetector
 from services.case_manager import CaseManager
+from services.investigation_tracker import InvestigationTracker
 
 config = DiscordBotConfig.load()
 food_detector = FoodDetector(api_key=config.gemini_api_key)
 case_manager = CaseManager()
+investigation_tracker = InvestigationTracker()
 
 # 暫存目錄
 scratch_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scratch", "discord")
@@ -381,6 +383,48 @@ async def stream_logs_to_channel():
             pass
         await asyncio.sleep(2.5)
 
+async def monitor_investigation_progress():
+    """
+    即時調查進度轉播任務：
+    每 2~3 秒檢查進行中案件的 Antigravity 對話動態，
+    自動轉播前線戰報至 #偵探日誌，並動態切換原訊息的表情符號 (🕵️ ➜ 🔍 ➜ 🗺️ ➜ ✍️)
+    """
+    await client.wait_until_ready()
+    case_emojis: dict = {}
+
+    while not client.is_closed():
+        try:
+            active_cases = case_manager.get_investigating_cases()
+            for c in active_cases:
+                case_id = c.get("case_id")
+                if not case_id:
+                    continue
+
+                reports, new_emoji = investigation_tracker.poll_case_updates(case_id)
+                # 1. 輸出前線戰報（將自動推播至 #偵探日誌 頻道）
+                for r in reports:
+                    bot_print(f"[貓貓偵探 🐾 案件-{case_id}] {r}")
+
+                # 2. 若調查階段推進，切換原訊息上的表情 (🕵️ ➜ 🔍 ➜ 🗺️ ➜ ✍️)
+                if new_emoji and case_emojis.get(case_id) != new_emoji:
+                    case_emojis[case_id] = new_emoji
+                    meta = c.get("discord_meta", {})
+                    channel_id = meta.get("channel_id")
+                    message_id = meta.get("message_id")
+                    if channel_id and message_id:
+                        try:
+                            channel = client.get_channel(channel_id)
+                            if not channel:
+                                channel = await client.fetch_channel(channel_id)
+                            if channel:
+                                msg = await channel.fetch_message(message_id)
+                                await set_single_reaction(msg, new_emoji)
+                        except Exception:
+                            pass
+        except Exception:
+            pass
+        await asyncio.sleep(2.5)
+
 @client.event
 async def on_ready():
     print("=" * 55)
@@ -395,6 +439,7 @@ async def on_ready():
     print("=" * 55)
     client.loop.create_task(watch_case_resolutions())
     client.loop.create_task(stream_logs_to_channel())
+    client.loop.create_task(monitor_investigation_progress())
 
 @client.event
 async def on_error(event, *args, **kwargs):
