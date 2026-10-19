@@ -1,0 +1,31 @@
+{
+  "case_id": "025",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 852925615799009321,
+    "message_id": 1561544775025303654,
+    "author": "water200427",
+    "created_at": 1792371688.8702328
+  },
+  "status": "resolved",
+  "guesses": [
+    "二十四分之一早午餐 手作麵包"
+  ],
+  "exclusions": [
+    "三島 sum:dao",
+    "小樂義 Solaia House",
+    "核桃蝸牛",
+    "榕髦 Rong mau",
+    "生地餅舖",
+    "Terzo",
+    "NOSH Coffee.Brunch"
+  ],
+  "leading_candidate": {
+    "name": "二十四分之一早午餐 手作麵包",
+    "address": "302新竹縣竹北市鹿場里文興路51號",
+    "maps_url": "https://maps.app.goo.gl/kmuKdtyqry86si529",
+    "confidence": "high"
+  },
+  "resolved": true
+}
