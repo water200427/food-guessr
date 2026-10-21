@@ -1,0 +1,35 @@
+{
+  "case_id": "027",
+  "case_title": "Discord 上傳照片辨識 - 亓家蒸餃鮮蝦蒸餃",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 852925615799009321,
+    "message_id": 1562395891812274307,
+    "author": "water200427",
+    "created_at": 1792574609.0168452
+  },
+  "status": "resolved",
+  "guesses": [
+    {
+      "name": "亓家蒸餃專賣店",
+      "maps_url": "https://maps.app.goo.gl/6SkDMcqPyzvjEiD78",
+      "cid_url": "https://maps.google.com/?cid=2422718131341037773",
+      "address": "105台北市松山區光復南路9號1樓",
+      "dish": "鮮蝦蒸餃（一籠8顆，$150）",
+      "confidence": "高",
+      "match_notes": "蒸籠排列（外7中1共8顆）、薄透餃皮透出整隻橘紅蝦肉、透光蒸籠紙顯露竹片橫條紋、淺色直條木紋桌、白色醬料碟、不鏽鋼雙環防滑筷皆100%相符，且確認出自 Threads 創作者 miki26520 之實訪貼文",
+      "status": "confirmed"
+    }
+  ],
+  "exclusions": [],
+  "leading_candidate": {
+    "name": "亓家蒸餃專賣店",
+    "maps_url": "https://maps.app.goo.gl/6SkDMcqPyzvjEiD78",
+    "cid_url": "https://maps.google.com/?cid=2422718131341037773",
+    "address": "105台北市松山區光復南路9號1樓",
+    "phone": "02-2760-1935",
+    "dish": "鮮蝦蒸餃（一籠8顆）",
+    "is_open": true
+  },
+  "resolved": true
+}
