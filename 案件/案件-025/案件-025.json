@@ -27,5 +27,6 @@
     "maps_url": "https://maps.app.goo.gl/kmuKdtyqry86si529",
     "confidence": "high"
   },
-  "resolved": true
+  "resolved": true,
+  "discord_notified": true
 }

@@ -1,0 +1,23 @@
+{
+  "case_id": "026",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "channel_id": 852925615799009321,
+    "message_id": 1562335807438852106,
+    "author": "water200427",
+    "created_at": 1792560284.0691736
+  },
+  "status": "resolved",
+  "guesses": [
+    "邊城孜然羊肉 Tsai's Cumin Halal Lamb Restaurant"
+  ],
+  "exclusions": [],
+  "leading_candidate": {
+    "name": "邊城孜然羊肉 Tsai's Cumin Halal Lamb Restaurant",
+    "address": "105台北市松山區復勢里八德路三段155巷28-1號",
+    "maps_url": "https://maps.app.goo.gl/g8hXaWJFPBj6zcHb8",
+    "confidence": "high"
+  },
+  "resolved": true
+}
