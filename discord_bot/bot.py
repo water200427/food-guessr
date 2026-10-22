@@ -1,3 +1,4 @@
+from typing import List, Union, Optional
 import os
 import sys
 import socket
@@ -95,21 +96,26 @@ async def set_single_reaction(message: discord.Message, new_emoji: str):
     except Exception as e:
         print(f"[貓貓偵探 ⚠️] 更新唯一表情失敗: {e}")
 
-async def start_investigation(message: discord.Message, image_path: str):
+async def start_investigation(message: discord.Message, image_paths: Union[str, List[str]]):
     """
-    極速立案並觸發 Antigravity 自動開啟獨立調查新對話（不倒數、直接秒啟動）
+    極速立案並觸發 Antigravity 自動開啟獨立調查新對話（支援單圖或多圖聯合排查）
     """
     await set_single_reaction(message, "🕵️")
 
+    if isinstance(image_paths, str):
+        img_list = [image_paths]
+    else:
+        img_list = list(image_paths)
+
     case_id = case_manager.create_case_from_discord(
-        image_path=image_path,
+        image_paths=img_list,
         channel_id=message.channel.id,
         message_id=message.id,
         author_name=str(message.author),
         guild_id=message.guild.id if message.guild else None,
         jump_url=message.jump_url
     )
-    print(f"[貓貓偵探 📋] 案件已建檔 (案件-{case_id})！Discord 已標註 🕵️ 表情。")
+    print(f"[貓貓偵探 📋] 案件已建檔 (案件-{case_id}，共 {len(img_list)} 張照片)！Discord 已標註 🕵️ 表情。")
 
     # 自動呼叫 agentapi 為該案在 Antigravity 開啟全新獨立對話
     try:
@@ -120,9 +126,18 @@ async def start_investigation(message: discord.Message, image_path: str):
                 "精確比對並盤點照片中的餐點品項名稱、規格份量與單價，計算出預估總金額（含幣別與服務費備註）。\n"
             )
 
+        if len(img_list) > 1:
+            img_bullets = "\n".join([f"  - 案件/案件-{case_id}/案件-{case_id}-Discord照片-{i}.jpg" for i in range(1, len(img_list) + 1)])
+            images_section = (
+                f"案件圖片（共 {len(img_list)} 張多視角物證照片）：\n{img_bullets}\n"
+                f"💡 本案包含多視角線索（如環境裝潢、不同餐點或菜單局部），請交叉比對各照片特徵以高把握度破案！"
+            )
+        else:
+            images_section = f"案件圖片：案件/案件-{case_id}/案件-{case_id}-Discord照片.jpg"
+
         prompt = (
             f"你是 Antigravity 找餐廳小貓偵探。請嚴格依據 AGENTS.md 與 找餐廳判斷規則.md 調查【案件-{case_id}】。\n"
-            f"案件圖片：案件/案件-{case_id}/案件-{case_id}-Discord照片.jpg\n"
+            f"{images_section}\n"
             f"案件檔案：案件/案件-{case_id}/案件-{case_id}-Discord照片.md 與 案件/案件-{case_id}/案件-{case_id}.json\n"
             f"請利用本機 Chrome 9222、Google Lens、以圖搜尋與 Google Maps 進行深度微型物證排查，"
             f"核對近期營業狀態與器皿。\n"
@@ -657,6 +672,7 @@ async def on_message(message: discord.Message):
                 return
 
         print(f"[貓貓偵探 📸] 收到來自【{message.author}】上傳的 {len(image_attachments)} 張照片！")
+        valid_paths = []
         for att in image_attachments:
             local_filename = f"{message.id}_{att.filename}"
             save_path = os.path.join(scratch_dir, local_filename)
@@ -665,10 +681,13 @@ async def on_message(message: discord.Message):
 
             is_food, reason = await asyncio.to_thread(food_detector.is_food_image, save_path)
             if is_food:
-                print(f"[貓貓偵探 🐟] 判定為美食照片 ({reason})！直接啟動找餐廳流程（不倒數）。")
-                await start_investigation(message, save_path)
+                valid_paths.append(save_path)
             else:
-                print(f"[貓貓偵探 🐾] 判定非美食照片 ({reason})，略過處理。")
+                print(f"[貓貓偵探 🐾] 照片 {att.filename} 判定非有效照片 ({reason})，略過。")
+
+        if valid_paths:
+            print(f"[貓貓偵探 🐟] 共 {len(valid_paths)} 張有效照片！直接啟動找餐廳同案排查流程。")
+            await start_investigation(message, valid_paths)
         return
 
     # 情境 B: 使用者回覆某則圖片訊息並 @機器人
@@ -724,6 +743,7 @@ async def on_message(message: discord.Message):
                         return
 
                 print(f"[貓貓偵探 📜] 抓取到被引用訊息【{ref_msg.id}】中的 {len(ref_images)} 張歷史照片！")
+                valid_paths = []
                 for att in ref_images:
                     local_filename = f"{ref_msg.id}_{att.filename}"
                     save_path = os.path.join(scratch_dir, local_filename)
@@ -732,8 +752,11 @@ async def on_message(message: discord.Message):
 
                     is_food, reason = await asyncio.to_thread(food_detector.is_food_image, save_path)
                     if is_food:
-                        print(f"[貓貓偵探 🐟] 引用照片判定為美食 ({reason})！直接啟動找餐廳流程（不倒數）。")
-                        await start_investigation(ref_msg, save_path)
+                        valid_paths.append(save_path)
+
+                if valid_paths:
+                    print(f"[貓貓偵探 🐟] 引用照片共 {len(valid_paths)} 張有效！直接啟動找餐廳同案排查流程。")
+                    await start_investigation(ref_msg, valid_paths)
                 return
         except Exception as e:
             print(f"[貓貓偵探 ⚠️] 解析引用歷史訊息失敗: {e}")

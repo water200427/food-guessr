@@ -4,7 +4,7 @@ import json
 import shutil
 import time
 import hashlib
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
 
 class CaseManager:
     """
@@ -156,17 +156,31 @@ class CaseManager:
 
     def create_case_from_discord(
         self,
-        image_path: str,
-        channel_id: int,
-        message_id: int,
-        author_name: str,
+        image_paths: Union[str, List[str]] = None,
+        channel_id: int = 0,
+        message_id: int = 0,
+        author_name: str = "",
         guess_candidates: List[str] = None,
         guild_id: Optional[int] = None,
-        jump_url: Optional[str] = None
+        jump_url: Optional[str] = None,
+        image_path: Optional[str] = None
     ) -> str:
         """
-        為疑難照片建立新案件 (JPG + Markdown + JSON)，內建去重防護
+        為疑難照片建立新案件 (支援單圖或多圖合併為同一案)，內建去重防護與標準 Schema 結構。
+        完美相容 image_paths (多圖/單圖列表) 與 image_path (傳統單圖參數)。
         """
+        actual_input = image_paths if image_paths is not None else image_path
+        if actual_input is None:
+            raise ValueError("必須提供 image_paths 或 image_path")
+
+        if isinstance(actual_input, str):
+            image_list = [actual_input]
+        else:
+            image_list = list(actual_input)
+
+        if not image_list:
+            raise ValueError("圖片路徑清單不得為空")
+
         # 1. 檢查是否同訊息已立案
         existing_by_msg = self.find_case_by_message(message_id)
         if existing_by_msg and existing_by_msg.get("case_id"):
@@ -175,26 +189,38 @@ class CaseManager:
             return existing_id
 
         # 2. 檢查圖片內容是否與既有已結案/調查中案件完全一致
-        existing_by_img = self.find_case_by_image_hash(image_path)
-        if existing_by_img and existing_by_img.get("case_id"):
-            existing_id = existing_by_img.get("case_id")
-            print(f"[CaseManager ♻️] 照片特徵完全吻合既有案件 (案件-{existing_id})，直接沿用不重複建檔。")
-            return existing_id
+        for img_p in image_list:
+            existing_by_img = self.find_case_by_image_hash(img_p)
+            if existing_by_img and existing_by_img.get("case_id"):
+                existing_id = existing_by_img.get("case_id")
+                print(f"[CaseManager ♻️] 照片特徵完全吻合既有案件 (案件-{existing_id})，直接沿用不重複建檔。")
+                return existing_id
 
         case_id = self.get_next_case_id()
         case_folder_name = f"案件-{case_id}"
         case_dir = os.path.join(self.cases_dir, case_folder_name)
         os.makedirs(case_dir, exist_ok=True)
 
-        base_name = f"案件-{case_id}-Discord照片"
-        dest_jpg = os.path.join(case_dir, f"{base_name}.jpg")
-        dest_md = os.path.join(case_dir, f"{base_name}.md")
+        # 1. 複製圖片至案件專屬目錄 (單圖維持傳統命名，多圖附加序號並複製代表圖)
+        copied_filenames = []
+        if len(image_list) == 1:
+            dest_jpg_name = f"案件-{case_id}-Discord照片.jpg"
+            dest_jpg = os.path.join(case_dir, dest_jpg_name)
+            shutil.copy2(image_list[0], dest_jpg)
+            copied_filenames.append(dest_jpg_name)
+        else:
+            for idx, img_p in enumerate(image_list, 1):
+                dest_jpg_name = f"案件-{case_id}-Discord照片-{idx}.jpg"
+                dest_jpg = os.path.join(case_dir, dest_jpg_name)
+                shutil.copy2(img_p, dest_jpg)
+                copied_filenames.append(dest_jpg_name)
+            # 同步備份第 1 張為預設代表圖
+            shutil.copy2(image_list[0], os.path.join(case_dir, f"案件-{case_id}-Discord照片.jpg"))
+
+        dest_md = os.path.join(case_dir, f"案件-{case_id}-Discord照片.md")
         dest_json = os.path.join(case_dir, f"案件-{case_id}.json")
 
-        # 1. 複製圖片至案件專屬目錄
-        shutil.copy2(image_path, dest_jpg)
-
-        # 2. 建立 JSON 資料檔（包含 guild_id、jump_url 與標準 Schema 骨架）
+        # 2. 建立 JSON 資料檔（包含 guild_id、jump_url、images 清單與標準 Schema 骨架）
         case_data = {
             "case_id": case_id,
             "case_title": "Discord 上傳照片辨識",
@@ -210,6 +236,7 @@ class CaseManager:
             "status": "investigating",
             "resolved": False,
             "discord_notified": False,
+            "images": copied_filenames,
             "leading_candidate": None,
             "price_estimation": None,
             "guesses": [],
@@ -218,15 +245,22 @@ class CaseManager:
         with open(dest_json, "w", encoding="utf-8") as f:
             json.dump(case_data, f, ensure_ascii=False, indent=2)
 
-        # 3. 依據模板建立 Markdown 檔案（包含最新餐點與價位試算骨架）
+        # 3. 依據模板建立 Markdown 檔案（支援多圖展示與最新餐點價位試算骨架）
         today_str = time.strftime("%Y-%m-%d")
+        if len(copied_filenames) == 1:
+            md_images = f"![案件照片]({copied_filenames[0]})"
+            case_desc = f"Discord 頻道由 {author_name} 上傳之食物照片"
+        else:
+            md_images = "\n\n".join([f"![案件照片 {i}]({fn})" for i, fn in enumerate(copied_filenames, 1)])
+            case_desc = f"Discord 頻道由 {author_name} 上傳之多視角食物照片（共 {len(copied_filenames)} 張）"
+
         md_content = f"""# 餐廳辨識案件
 
 ## 案件資訊
 
 - 案件編號：{case_id}
 - 建立日期：{today_str}
-- 照片／線索：Discord 頻道由 {author_name} 上傳之食物照片
+- 照片／線索：{case_desc}
 - 目前狀態：調查中（已轉交 Antigravity 深度微型物證排查）
 
 ## 使用者提供的範圍與限制
@@ -237,7 +271,7 @@ class CaseManager:
 
 ## 照片觀察
 
-![案件照片]({os.path.basename(dest_jpg)})
+{md_images}
 
 ### 餐點
 
@@ -284,7 +318,7 @@ class CaseManager:
         with open(dest_md, "w", encoding="utf-8") as f:
             f.write(md_content)
 
-        print(f"[CaseManager] 疑難案件已成功建檔: {case_folder_name}/{base_name} (案件編號: {case_id})")
+        print(f"[CaseManager] 疑難案件已成功建檔: {case_folder_name} (案件編號: {case_id}, 共 {len(copied_filenames)} 張照片)")
         return case_id
 
     def get_investigating_cases(self) -> List[Dict[str, Any]]:

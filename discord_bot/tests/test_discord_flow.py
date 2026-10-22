@@ -261,5 +261,91 @@ class TestDiscordBotLogic(unittest.IsolatedAsyncioTestCase):
             import shutil
             shutil.rmtree(test_dir, ignore_errors=True)
 
+
+    def test_case_manager_multi_image_handling(self):
+        """測試案件管理器支援多張照片合併為同一案件 (案件-00X-Discord照片-1.jpg, 2.jpg)"""
+        import tempfile
+        import json
+        from services.case_manager import CaseManager
+        test_dir = tempfile.mkdtemp()
+        try:
+            cm = CaseManager(cases_dir=test_dir)
+            img1 = os.path.join(test_dir, "view1.jpg")
+            img2 = os.path.join(test_dir, "view2.jpg")
+            with open(img1, "wb") as f:
+                f.write(b"food_photo_angle_1")
+            with open(img2, "wb") as f:
+                f.write(b"menu_photo_angle_2")
+
+            # 建立多圖案件
+            cid = cm.create_case_from_discord(
+                image_paths=[img1, img2],
+                channel_id=888,
+                message_id=999,
+                author_name="multi_user"
+            )
+            self.assertEqual(cid, "001")
+
+            case_subfolder = os.path.join(test_dir, f"案件-{cid}")
+            self.assertTrue(os.path.exists(os.path.join(case_subfolder, f"案件-{cid}-Discord照片-1.jpg")))
+            self.assertTrue(os.path.exists(os.path.join(case_subfolder, f"案件-{cid}-Discord照片-2.jpg")))
+            self.assertTrue(os.path.exists(os.path.join(case_subfolder, f"案件-{cid}-Discord照片.jpg")))
+
+            # 驗證 Markdown 內容包含所有照片
+            md_path = os.path.join(case_subfolder, f"案件-{cid}-Discord照片.md")
+            with open(md_path, "r", encoding="utf-8") as f:
+                md_text = f.read()
+            self.assertIn(f"案件-{cid}-Discord照片-1.jpg", md_text)
+            self.assertIn(f"案件-{cid}-Discord照片-2.jpg", md_text)
+            self.assertIn("共 2 張", md_text)
+
+            # 驗證 JSON 包含 images 清單
+            json_path = os.path.join(case_subfolder, f"案件-{cid}.json")
+            with open(json_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            self.assertEqual(len(data.get("images", [])), 2)
+
+            # 驗證多圖特徵去重 (傳入包含 img2 的新請求)
+            cid_dup = cm.create_case_from_discord(
+                image_paths=[img2],
+                channel_id=888,
+                message_id=1000,
+                author_name="another_user"
+            )
+            self.assertEqual(cid_dup, "001", "多圖中若任一照片吻合既有案件，必須自動去重沿用既有案件編號")
+        finally:
+            import shutil
+            shutil.rmtree(test_dir, ignore_errors=True)
+
+
+    def test_crop_tool_functionality(self):
+        """測試物證裁切工具 (crop_tool.py) 支援百分比裁切與高品質放大"""
+        import tempfile
+        from PIL import Image
+        sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "scripts")))
+        from crop_tool import crop_image
+
+        test_dir = tempfile.mkdtemp()
+        try:
+            # 建立 200x200 測試圖
+            src_path = os.path.join(test_dir, "test_crop_src.jpg")
+            img = Image.new("RGB", (200, 200), color="blue")
+            img.save(src_path)
+
+            # 測試百分比裁切 (0.25, 0.25, 0.75, 0.75 -> 100x100) 並放大 2 倍 -> 200x200
+            dst_path = os.path.join(test_dir, "cropped.jpg")
+            out = crop_image(
+                input_path=src_path,
+                output_path=dst_path,
+                percent=[0.25, 0.25, 0.75, 0.75],
+                zoom=2.0
+            )
+            self.assertTrue(os.path.exists(dst_path))
+            with Image.open(dst_path) as res_im:
+                self.assertEqual(res_im.size, (200, 200), "裁切後放大 2 倍尺寸應吻合")
+        finally:
+            import shutil
+            shutil.rmtree(test_dir, ignore_errors=True)
+
 if __name__ == "__main__":
     unittest.main()

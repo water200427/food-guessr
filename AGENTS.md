@@ -40,7 +40,14 @@
      - 畫面截圖：`python scripts/browser_controller.py screenshot "scratch/out.jpg"`
      - Google Lens 以圖搜尋／圖文多模態搜尋：`python scripts/browser_controller.py lens "<圖片路徑>" -q "<附加關鍵字>" -s "scratch/lens.jpg" -t "scratch/lens.txt"`
      - 取得官方短網址：`python scripts/browser_controller.py share`（在 Google Maps 商家頁面自動點擊分享並取得官方 `https://maps.app.goo.gl/...` 短網址）
-2. **時間控制（30 分鐘停損原則）**：
+3. **微距物證與局部裁切工具 `scripts/crop_tool.py`**：
+   - 遇到商標、商業飲料罐干擾或需要放大桌上調味瓶/微型標籤時，優先使用本機裁切工具：
+     - 按比例裁切（免算像素）：`python scripts/crop_tool.py "<圖片路徑>" --percent 0.2 0.2 0.8 0.8 -o "scratch/crop.jpg"`
+     - 按像素座標裁切：`python scripts/crop_tool.py "<圖片路徑>" --box <x1> <y1> <x2> <y2> -o "scratch/crop.jpg"`
+     - 微距高清晰放大（Lanczos）：加上 `--zoom 2.0`（將局部區域放大 2 倍，方便 Lens 識別）
+     - 查看圖片解析度：`python scripts/crop_tool.py "<圖片路徑>" --info`
+     - 產生的局部圖自動儲存於 `scratch/`，可無縫銜接丟入 `scripts/browser_controller.py lens` 進行精準檢索。
+4. **時間控制（30 分鐘停損原則）**：
    - 單次調查若超過 25～30 分鐘仍未確認答案，應先暫停並整理目前已確認的特徵、已排除店家與卡關疑問（例如客觀物證與記憶地點是否衝突）回報使用者，避免過度空轉。
 3. **階段性整理與 Git 整潔**：
    - 調查過程中的局部裁切圖、網頁截圖一律存放在 `scratch/` 目錄（已列於 `.gitignore`），不要污染 `案件/` 與根目錄。
