@@ -1,0 +1,68 @@
+{
+  "case_id": "028",
+  "case_title": "Discord 上傳照片辨識 - 蓋子美式餐廳",
+  "source": "discord",
+  "discord_meta": {
+    "guild_id": 738757200780066839,
+    "channel_id": 1560931331901362237,
+    "message_id": 1562677496418410598,
+    "jump_url": "https://discord.com/channels/738757200780066839/1560931331901362237/1562677496418410598",
+    "author": "water200427",
+    "created_at": 1792641750.330673
+  },
+  "status": "resolved",
+  "resolved": true,
+  "leading_candidate": {
+    "name": "蓋子美式餐廳（板橋店）",
+    "google_maps_url": "https://maps.app.goo.gl/P7HVEqra8Ua9KyH96",
+    "address": "新北市板橋區建國街127號",
+    "confidence": "高",
+    "price_estimation": {
+      "items": [
+        {
+          "name": "墨西哥辣肉醬牛肉漢堡（布里歐麵包）",
+          "quantity": 1,
+          "price": 245
+        },
+        {
+          "name": "升級經典套餐（玉米脆片佐莎莎醬＋冰紅茶）",
+          "quantity": 1,
+          "price": 100
+        }
+      ],
+      "service_fee": "免收服務費 (0%)",
+      "total_twd": 345
+    }
+  },
+  "guesses": [
+    {
+      "name": "蓋子美式餐廳（板橋店）",
+      "google_maps_url": "https://maps.app.goo.gl/P7HVEqra8Ua9KyH96",
+      "address": "新北市板橋區建國街127號",
+      "status": "營業中",
+      "match_points": [
+        "右上角木座立牌明確寫有「WiFi: Gatsby...」與「整顆洋蔥酥炸... 現做等待15分鐘」，與該店招牌洋蔥花完全相符",
+        "灰褐色細紋木紋桌面與靠窗之墨綠色磨石子台面結構相符",
+        "漢堡盛裝之灰綠蔓藤花紋陶盤、黑色圓盤裝玉米片及專屬 CALIFORNIA CHEESE 襯紙完全一致",
+        "直條紋玻璃水杯、八角切面高玻璃杯與紅色調味料提籃完全吻合"
+      ],
+      "contradictions": [],
+      "verdict": "最符合（首選）"
+    },
+    {
+      "name": "蓋子普拉斯小餐館-新生店",
+      "google_maps_url": "https://maps.app.goo.gl/hdoj1jAKmNVsgnJD8",
+      "address": "台北市大安區忠孝東路三段10巷22號",
+      "status": "營業中",
+      "match_points": [
+        "同體系二店，餐點菜色（墨西哥辣肉醬漢堡、炸洋蔥花、玉米脆片）、餐盤與杯具均高度通用"
+      ],
+      "contradictions": [
+        "該店店名為 Gatsby Plus，立牌 WiFi 標記偏向板橋總店之 Gatsby",
+        "新生店室內裝潢以現代純白木質調為主，靠窗區與板橋老宅磨石子窗台有細微差異"
+      ],
+      "verdict": "備選（同體系二店）"
+    }
+  ],
+  "exclusions": []
+}

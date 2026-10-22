@@ -31,5 +31,24 @@
     "dish": "鮮蝦蒸餃（一籠8顆）",
     "is_open": true
   },
-  "resolved": true
+  "resolved": true,
+  "discord_notified": true,
+  "price_estimation": {
+    "currency": "TWD",
+    "menu_date": "2026-07",
+    "menu_source": "Google Maps 2026最新價目表照片 / Threads 實訪貼文",
+    "items": [
+      {
+        "name": "鮮蝦蒸餃",
+        "spec": "一籠8顆",
+        "quantity": 1,
+        "unit_price": 150,
+        "subtotal": 150,
+        "notes": "蒸籠內清晰可見外7中1共8顆手工鮮蝦蒸餃"
+      }
+    ],
+    "service_fee_percent": 0,
+    "total_price": 150,
+    "notes": "免服務費"
+  }
 }
