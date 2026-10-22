@@ -166,29 +166,32 @@ async def start_investigation(message: discord.Message, image_paths: Union[str, 
 
 def is_homemade_meal(lead_dict: dict) -> bool:
     """
-    精準判斷是否為個人居家自煮手作料理，杜絕將「XX手作烘焙」、「XX家常牛肉麵」等實體店家誤判。
+    精準判斷是否為個人居家自煮手作料理，杜絕將「XX手作烘焙」、「XX家常牛肉麵」或「超商外帶商品」等誤判。
     """
     if not lead_dict or not isinstance(lead_dict, dict):
         return False
 
-    # 防線 1: 若明確標註為實體餐廳，絕非自煮
+    # 防線 1: 若明確標註為實體餐廳或超商/零售外帶，絕非居家自煮
     if lead_dict.get("is_restaurant") is True:
+        return False
+    if lead_dict.get("is_retail") is True or lead_dict.get("is_takeout") is True:
+        return False
+
+    name = lead_dict.get("name", "")
+    # 防線 2: 若名稱包含超商、便利商店、賣場或明確連鎖品牌，絕非自煮
+    retail_phrases = ["7-Eleven", "7-11", "全家", "萊爾富", "OK超商", "超商", "便利商店", "全聯", "好市多", "Costco", "家樂福", "超市"]
+    if any(rp.lower() in name.lower() for rp in retail_phrases):
         return False
 
     # 正向特徵 1: 明確標註為自煮手作
     if lead_dict.get("is_homemade") is True:
         return True
 
-    # 正向特徵 2: 明確標註非實體餐廳
-    if lead_dict.get("is_restaurant") is False:
-        return True
-
-    # 正向特徵 3: 店名包含高置信度「自煮自製」專屬片語（杜絕單字「手作」或「家常」誤傷真實店家）
-    name = lead_dict.get("name", "")
+    # 正向特徵 2: 店名包含高置信度「自煮自製」專屬片語（杜絕單字「手作」或「家常」誤傷真實店家，嚴禁包含「非餐廳」）
     homemade_phrases = [
         "自己手作", "自己煮", "自己做", "自煮料理", "自煮美食",
         "親手做", "親手烹調", "親手製作", "自家手作", "自家烹飪",
-        "自煮家常", "自製家常", "自己烘焙", "非餐廳", "非實體餐廳"
+        "自煮家常", "自製家常", "自己烘焙", "居家自煮"
     ]
     if any(phrase in name for phrase in homemade_phrases):
         # 若同時具備明確 Google Maps 連結，仍視為實體店家（避免 AI 寫錯店名）
@@ -209,8 +212,11 @@ def extract_maps_url(lead_dict: dict) -> str:
     import re
     import urllib.parse
 
-    # 0. 若經研判確認為個人自煮料理或非實體餐廳，絕對不產生 Google 地點連結
-    if is_homemade_meal(lead_dict):
+    # 0. 若經研判確認為個人自煮料理或非實體餐廳/超商外帶，絕對不產生特定 Google 地點連結
+    if is_homemade_meal(lead_dict) or lead_dict.get("is_restaurant") is False:
+        return ""
+    name_check = lead_dict.get("name", "")
+    if any(k in name_check for k in ["非餐廳", "非實體", "超商外帶"]):
         return ""
 
     raw_url = (
@@ -262,8 +268,6 @@ def format_price_estimation(case_data: dict) -> list:
 
     lines = []
     lead = case_data.get("leading_candidate", {}) or {}
-    if isinstance(lead, dict) and is_homemade_meal(lead):
-        return ["🍳 **餐點資訊**：自家用心烹飪，愛心無價 ❤️"]
 
     pe = case_data.get("price_estimation") or {}
     if not pe and isinstance(lead, dict) and lead.get("price_estimation"):
@@ -274,27 +278,35 @@ def format_price_estimation(case_data: dict) -> list:
     currency = pe.get("currency", "NT$")
     if currency == "TWD":
         currency = "NT$"
+    elif currency == "JPY":
+        currency = "¥"
+
     menu_date = pe.get("menu_date", "")
     notes = pe.get("notes") or pe.get("additional_fees_note", "")
 
     # 向下相容：若根層級沒有 items，但 leading_candidate 內有 dish 或 estimated_total
-    lead = case_data.get("leading_candidate", {}) or {}
-    if not items and isinstance(lead, dict):
-        lead_dish = lead.get("dish")
-        lead_total = lead.get("estimated_total")
-        if lead_dish or lead_total:
-            lines.append("💰 **餐點品項與預估價格**：")
-            if lead_dish:
-                lines.append(f"• {lead_dish}")
-            if lead_total:
-                lines.append(f"👉 **預估總計：約 {lead_total}**")
-            return lines
+    lead_dish = lead.get("dish") if isinstance(lead, dict) else None
+    lead_total = lead.get("estimated_total") if isinstance(lead, dict) else None
+
+    # [關鍵防禦] 若完全沒有具體品項，且確認為自煮手作料理，才顯示自家用心烹飪
+    if not items and not lead_dish and isinstance(lead, dict) and is_homemade_meal(lead):
+        return ["🍳 **餐點資訊**：自家用心烹飪，愛心無價 ❤️"]
+
+    if not items and isinstance(lead, dict) and (lead_dish or lead_total):
+        lines.append("💰 **餐點品項與預估價格**：")
+        if lead_dish:
+            lines.append(f"• {lead_dish}")
+        if lead_total:
+            lines.append(f"👉 **預估總計：約 {lead_total}**")
+        return lines
 
     if not items and total_price is None:
         return lines
 
     date_str = f"（{menu_date} 最新菜單）" if menu_date else "（參考最新菜單）"
     lines.append(f"💰 **菜單品項與預估總價**{date_str}：")
+
+    price_prefix = "¥" if currency == "¥" else ("$" if currency in ["NT$", "$"] else f"{currency} ")
 
     for item in items:
         name = item.get("name", "餐點")
@@ -306,9 +318,9 @@ def format_price_estimation(case_data: dict) -> list:
         spec_str = f"（{spec}）" if spec else ""
         qty_str = f" × {qty}" if qty and qty > 1 else ""
         if subtotal is not None:
-            price_str = f"：${subtotal}"
+            price_str = f"：{price_prefix}{subtotal}"
         elif unit_price is not None:
-            price_str = f"：${unit_price}"
+            price_str = f"：{price_prefix}{unit_price}"
         else:
             price_str = ""
 
@@ -322,6 +334,8 @@ def format_price_estimation(case_data: dict) -> list:
             lines.append(f"👉 **預估總計：約 {total_price}**{fee_str}")
     elif notes:
         lines.append(f"👉 **備註**：{notes}")
+
+    return lines
 
     return lines
 

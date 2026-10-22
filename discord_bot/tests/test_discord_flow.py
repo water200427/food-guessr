@@ -429,5 +429,35 @@ class TestDiscordBotLogic(unittest.IsolatedAsyncioTestCase):
         }
         self.assertTrue(is_homemade_meal(home2), "店名含『自己煮』必須判定為自煮手作")
 
+    def test_convenience_store_takeout_price_estimation_not_misidentified_as_homemade(self):
+        """[核心防禦] 測試超商/零售外帶食品（如 7-Eleven 布丁＋優格）絕不被誤判為自煮愛心無價，必須完整列出品項與價格！"""
+        from bot import is_homemade_meal, extract_maps_url, format_price_estimation
+
+        store_item = {
+            "name": "日本 7-Eleven 超商點心（布丁＋優格，於飯店客房內食用）",
+            "is_restaurant": False,
+            "is_retail": True,
+            "is_homemade": False
+        }
+        self.assertFalse(is_homemade_meal(store_item), "超商零售外帶絕不能判定為自煮手作料理")
+        self.assertEqual(extract_maps_url(store_item), "", "超商外帶不產生特定單一門市 Maps 連結")
+
+        case = {
+            "leading_candidate": store_item,
+            "price_estimation": {
+                "currency": "JPY",
+                "items": [
+                    {"name": "セブン-イレブン カスタードプリン（布丁）", "subtotal": 289},
+                    {"name": "セブンプレミアム のむヨーグルト ブルーベリー（藍莓優格飲）", "subtotal": 183}
+                ],
+                "total_price": 472
+            }
+        }
+        lines = format_price_estimation(case)
+        self.assertFalse(any("愛心無價" in l for l in lines), "超商外帶點心絕不能顯示自家用心烹飪")
+        self.assertTrue(any("布丁" in l for l in lines), "必須包含布丁品項")
+        self.assertTrue(any("藍莓優格飲" in l for l in lines), "必須包含藍莓優格飲品項")
+        self.assertTrue(any("472" in l for l in lines), "必須包含總金額試算")
+
 if __name__ == "__main__":
     unittest.main()
