@@ -1,0 +1,45 @@
+{
+  "case_id": "00X",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "guild_id": null,
+    "channel_id": null,
+    "message_id": null,
+    "jump_url": null,
+    "author": "",
+    "created_at": 0
+  },
+  "status": "investigating",
+  "resolved": false,
+  "discord_notified": false,
+  "leading_candidate": {
+    "name": "",
+    "google_maps_url": "",
+    "maps_url": "",
+    "address": "",
+    "confidence": "高",
+    "dish": "",
+    "is_open": true
+  },
+  "price_estimation": {
+    "currency": "NT$",
+    "menu_date": "2026",
+    "menu_source": "Google Maps 2026 最新菜單照片 / 店家官方價目表",
+    "items": [
+      {
+        "name": "範例餐點",
+        "spec": "份量或規格",
+        "quantity": 1,
+        "unit_price": 100,
+        "subtotal": 100,
+        "notes": "照片中清晰可見之特徵"
+      }
+    ],
+    "service_fee_percent": 0,
+    "total_price": 100,
+    "additional_fees_note": "免收服務費"
+  },
+  "guesses": [],
+  "exclusions": []
+}

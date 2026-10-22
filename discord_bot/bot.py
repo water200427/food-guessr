@@ -8,12 +8,21 @@ import builtins
 from datetime import datetime
 
 # 單一實例保證（防止多重開機或重複回覆）
-_lock_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-try:
-    _lock_socket.bind(("127.0.0.1", 58421))
-except socket.error:
-    print("[💥 啟動終止] 偵測到已有其他 Discord 機器人實例正在運行中 (Port 58421 被佔用)！為避免重複回覆，此實例自動退出。")
-    sys.exit(0)
+_lock_socket = None
+def ensure_single_instance():
+    global _lock_socket
+    if _lock_socket is not None:
+        return True
+    try:
+        _lock_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        _lock_socket.bind(("127.0.0.1", 58421))
+        return True
+    except socket.error:
+        print("[💥 啟動終止] 偵測到已有其他 Discord 機器人實例正在運行中 (Port 58421 被佔用)！為避免重複回覆，此實例自動退出。")
+        sys.exit(0)
+
+if __name__ == "__main__":
+    ensure_single_instance()
 
 # 強制 stdout / stderr 行緩衝即時輸出 (Unbuffered)
 if hasattr(sys.stdout, "reconfigure"):
@@ -96,19 +105,30 @@ async def start_investigation(message: discord.Message, image_path: str):
         image_path=image_path,
         channel_id=message.channel.id,
         message_id=message.id,
-        author_name=str(message.author)
+        author_name=str(message.author),
+        guild_id=message.guild.id if message.guild else None,
+        jump_url=message.jump_url
     )
     print(f"[貓貓偵探 📋] 案件已建檔 (案件-{case_id})！Discord 已標註 🕵️ 表情。")
 
     # 自動呼叫 agentapi 為該案在 Antigravity 開啟全新獨立對話
     try:
+        price_instruction = ""
+        if getattr(config, "enable_price_estimation", True):
+            price_instruction = (
+                "【重要任務：菜單與價目表核對】若確認為實體餐廳與餐點，請進一步參考該店家在 Google Maps 最新（2025～2026年）之菜單/價目表照片，"
+                "精確比對並盤點照片中的餐點品項名稱、規格份量與單價，計算出預估總金額（含幣別與服務費備註）。\n"
+            )
+
         prompt = (
             f"你是 Antigravity 找餐廳小貓偵探。請嚴格依據 AGENTS.md 與 找餐廳判斷規則.md 調查【案件-{case_id}】。\n"
             f"案件圖片：案件/案件-{case_id}/案件-{case_id}-Discord照片.jpg\n"
             f"案件檔案：案件/案件-{case_id}/案件-{case_id}-Discord照片.md 與 案件/案件-{case_id}/案件-{case_id}.json\n"
             f"請利用本機 Chrome 9222、Google Lens、以圖搜尋與 Google Maps 進行深度微型物證排查，"
-            f"核對近期營業狀態與器皿，確認後更新 案件/案件-{case_id}/案件-{case_id}.json（填寫 leading_candidate、status='resolved'、resolved=true）"
-            f"與對應的 .md 檔案以完成結案！"
+            f"核對近期營業狀態與器皿。\n"
+            f"{price_instruction}"
+            f"確認後更新 案件/案件-{case_id}/案件-{case_id}.json（填寫 leading_candidate、price_estimation、status='resolved'、resolved=true）"
+            f"與對應的 .md 檔案（在結論中附帶餐點品項與價位試算）以完成結案！"
         )
         cmd = ["cmd.exe", "/c", "agentapi", "new-conversation", f"--title=案件-{case_id} 調查", prompt]
         res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
@@ -172,6 +192,77 @@ def extract_maps_url(lead_dict: dict) -> str:
     # 5. 兜底：解碼所有百分比字元以還原純文字
     return urllib.parse.unquote(raw_url).split("&entry=")[0].split("?entry=")[0]
 
+def format_price_estimation(case_data: dict) -> list:
+    """
+    從案件資料中提取並排版餐點品項與總價估算
+    選配開關受 config.enable_price_estimation 控制（預設為開）
+    """
+    if not getattr(config, "enable_price_estimation", True):
+        return []
+
+    lines = []
+    pe = case_data.get("price_estimation") or {}
+    lead = case_data.get("leading_candidate", {}) or {}
+    if not pe and isinstance(lead, dict) and lead.get("price_estimation"):
+        pe = lead.get("price_estimation") or {}
+
+    items = pe.get("items") or []
+    total_price = pe.get("total_price")
+    currency = pe.get("currency", "NT$")
+    if currency == "TWD":
+        currency = "NT$"
+    menu_date = pe.get("menu_date", "")
+    notes = pe.get("notes") or pe.get("additional_fees_note", "")
+
+    # 向下相容：若根層級沒有 items，但 leading_candidate 內有 dish 或 estimated_total
+    lead = case_data.get("leading_candidate", {}) or {}
+    if not items and isinstance(lead, dict):
+        lead_dish = lead.get("dish")
+        lead_total = lead.get("estimated_total")
+        if lead_dish or lead_total:
+            lines.append("💰 **餐點品項與預估價格**：")
+            if lead_dish:
+                lines.append(f"• {lead_dish}")
+            if lead_total:
+                lines.append(f"👉 **預估總計：約 {lead_total}**")
+            return lines
+
+    if not items and total_price is None:
+        return lines
+
+    date_str = f"（{menu_date} 最新菜單）" if menu_date else "（參考最新菜單）"
+    lines.append(f"💰 **菜單品項與預估總價**{date_str}：")
+
+    for item in items:
+        name = item.get("name", "餐點")
+        spec = item.get("spec") or item.get("specification", "")
+        qty = item.get("quantity", 1)
+        unit_price = item.get("unit_price")
+        subtotal = item.get("subtotal")
+
+        spec_str = f"（{spec}）" if spec else ""
+        qty_str = f" × {qty}" if qty and qty > 1 else ""
+        if subtotal is not None:
+            price_str = f"：${subtotal}"
+        elif unit_price is not None:
+            price_str = f"：${unit_price}"
+        else:
+            price_str = ""
+
+        lines.append(f"• {name}{spec_str}{qty_str}{price_str}")
+
+    if total_price is not None:
+        fee_str = f" ({notes})" if notes else ""
+        if isinstance(total_price, (int, float)):
+            lines.append(f"👉 **預估總計：約 {currency} {total_price:,.0f}**{fee_str}")
+        else:
+            lines.append(f"👉 **預估總計：約 {total_price}**{fee_str}")
+    elif notes:
+        lines.append(f"👉 **備註**：{notes}")
+
+    return lines
+
+
 async def watch_case_resolutions():
     """
     背景輪詢監聽：
@@ -201,10 +292,37 @@ async def watch_case_resolutions():
                     if channel:
                         try:
                             msg = await channel.fetch_message(message_id)
+                            jump_url = getattr(msg, "jump_url", None) or case_manager.get_case_jump_url(case_data, default_guild_id=msg.guild.id if msg and msg.guild else None)
+
                             # 情況 A: 30 分鐘停損
                             if status == "unconfirmed" or case_data.get("timeout_cutoff"):
                                 await set_single_reaction(msg, "❓")
                                 print(f"[貓貓偵探 ❓] 案件-{case_id} 達 30 分鐘停損，已在 Discord 標註 ❓ 表情。")
+
+                                # 向原頻道發送友善停損回報，避免群友乾等
+                                try:
+                                    timeout_reply = (
+                                        f"🐾 **【案件-{case_id} 調查停損通知】**\n"
+                                        f"此案微型物證排查已達 30 分鐘時限，現有照片特徵尚不足以百分之百鎖定單一店家（已標註 ❓）。\n"
+                                        f"💡 若有額外的拍攝地點、其他角度照片或回憶線索，歡迎隨時補充！🐾"
+                                    )
+                                    await msg.reply(timeout_reply, mention_author=False)
+                                except Exception as te:
+                                    print(f"[貓貓偵探 ⚠️] 原頻道發送停損通知失敗: {te}")
+
+                                if config.log_channel_id:
+                                    try:
+                                        log_ch = client.get_channel(config.log_channel_id) or await client.fetch_channel(config.log_channel_id)
+                                        if log_ch:
+                                            timeout_lines = [
+                                                f"❓ **【案件-{case_id} 調查停損（尚無法確認）】**",
+                                                f"⏳ 已達 30 分鐘調查停損時限，待後續補充線索。"
+                                            ]
+                                            if jump_url:
+                                                timeout_lines.append(f"🔗 **原始照片訊息**：[點此跳轉原圖訊息]({jump_url})")
+                                            await log_ch.send("\n".join(timeout_lines))
+                                    except Exception as le:
+                                        print(f"[貓貓偵探 ⚠️] 日誌頻道發送停損通報失敗: {le}")
 
                             # 情況 B: 本地深度破案成功
                             elif name:
@@ -262,6 +380,10 @@ async def watch_case_resolutions():
                                 if maps_url:
                                     reply_lines.append(maps_url)
 
+                                price_lines = format_price_estimation(case_data)
+                                if price_lines:
+                                    reply_lines.extend(price_lines)
+
                                 # 依據設定決定是否自動附帶 Markdown 報告附件 (預設先取消展示，保持回覆清爽)
                                 file_attachment = None
                                 if getattr(config, "auto_attach_report", False):
@@ -281,6 +403,26 @@ async def watch_case_resolutions():
                                     await msg.reply("\n".join(reply_lines), mention_author=False)
                                 await set_single_reaction(msg, "✅")
                                 print(f"[貓貓偵探 🎉] 案件-{case_id} 已成功回傳 Discord！")
+
+                                # 同步向專屬日誌頻道發送結案通報（附帶跳轉原始照片訊息之連結）
+                                if config.log_channel_id:
+                                    try:
+                                        log_ch = client.get_channel(config.log_channel_id) or await client.fetch_channel(config.log_channel_id)
+                                        if log_ch:
+                                            log_summary_lines = [
+                                                f"🎯 **【案件-{case_id} 結案通報】**",
+                                                f"🏠 **店名**：**{name}**"
+                                            ]
+                                            if maps_url:
+                                                log_summary_lines.append(f"📍 **地點**：{maps_url}")
+                                            price_lines = format_price_estimation(case_data)
+                                            if price_lines:
+                                                log_summary_lines.extend(price_lines)
+                                            if jump_url:
+                                                log_summary_lines.append(f"🔗 **原始照片訊息**：[點此跳轉原圖訊息]({jump_url})")
+                                            await log_ch.send("\n".join(log_summary_lines))
+                                    except Exception as le:
+                                        print(f"[貓貓偵探 ⚠️] 日誌頻道發送結案通報失敗: {le}")
                         except Exception as e:
                             print(f"[貓貓偵探 ❌] 案件回報 Discord 失敗: {e}")
                 case_manager.mark_case_notified(json_path, case_data)
@@ -483,6 +625,10 @@ async def on_message(message: discord.Message):
                 if ex_maps:
                     reply_lines.append(ex_maps)
 
+                price_lines = format_price_estimation(existing_case)
+                if price_lines:
+                    reply_lines.extend(price_lines)
+
                 ex_case_id = existing_case.get("case_id")
                 ex_json_path = existing_case.get("_json_path")
                 ex_md_path = case_manager.get_case_md_path(ex_case_id, ex_json_path)
@@ -546,6 +692,10 @@ async def on_message(message: discord.Message):
                         if ex_maps:
                             reply_lines.append(ex_maps)
 
+                        price_lines = format_price_estimation(existing_case)
+                        if price_lines:
+                            reply_lines.extend(price_lines)
+
                         ex_case_id = existing_case.get("case_id")
                         ex_json_path = existing_case.get("_json_path")
                         ex_md_path = case_manager.get_case_md_path(ex_case_id, ex_json_path)
@@ -591,6 +741,25 @@ async def on_message(message: discord.Message):
     # 處理狀態與日誌查詢指令 (!status, !log, !logs, !logfile)
     if message.content:
         clean_content = message.content.strip().lower()
+
+        # 0. 菜單價格試算選配開關指令 (!price, !price on/off 或 @這哪家 price)
+        if clean_content.startswith("!price") or (is_mentioned and "price" in clean_content):
+            parts = clean_content.split()
+            arg = parts[1] if len(parts) > 1 else ""
+            if arg in ("on", "true", "enable", "開"):
+                config.enable_price_estimation = True
+                config.save()
+                await message.reply("✅ **已開啟【參考最新菜單顯示品項並計算總價格】功能！**\n後續結案將會自動核對最新菜單並試算消費金額。🐾", mention_author=False)
+            elif arg in ("off", "false", "disable", "關"):
+                config.enable_price_estimation = False
+                config.save()
+                await message.reply("🛑 **已關閉【參考最新菜單顯示品項並計算總價格】功能！**\n後續結案將只顯示店名與地點連結。🐾", mention_author=False)
+            else:
+                config.enable_price_estimation = not config.enable_price_estimation
+                config.save()
+                st_str = "開啟 ✅" if config.enable_price_estimation else "關閉 🛑"
+                await message.reply(f"💰 目前菜單價格試算功能狀態為：**{st_str}**\n*(可輸入 `!price on` 或 `!price off` 明確設定)*", mention_author=False)
+            return
 
         # 1. 設定專屬日誌轉播頻道 (!setlogchannel, !bindlog 或 @這哪家 setlog)
         if clean_content.startswith("!setlogchannel") or clean_content.startswith("!bindlog") or (is_mentioned and "setlog" in clean_content):

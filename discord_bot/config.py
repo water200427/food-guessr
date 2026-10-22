@@ -11,6 +11,7 @@ class DiscordBotConfig:
     gemini_api_key: str = ""
     log_channel_id: int = None
     auto_attach_report: bool = False
+    enable_price_estimation: bool = True
     config_file_path: str = None
 
     @classmethod
@@ -38,6 +39,8 @@ class DiscordBotConfig:
                     cfg.gemini_api_key = data.get("gemini_api_key", cfg.gemini_api_key)
                     cfg.log_channel_id = data.get("log_channel_id", cfg.log_channel_id)
                     cfg.auto_attach_report = data.get("auto_attach_report", cfg.auto_attach_report)
+
+                    cfg.enable_price_estimation = data.get("enable_price_estimation", cfg.enable_price_estimation)
             except Exception as e:
                 print(f"[!] 載入設定失敗 ({e})，使用預設值。")
 
@@ -51,6 +54,8 @@ class DiscordBotConfig:
                 pass
         if os.getenv("AUTO_ATTACH_REPORT"):
             cfg.auto_attach_report = os.getenv("AUTO_ATTACH_REPORT").lower() in ("true", "1", "yes")
+        if os.getenv("ENABLE_PRICE_ESTIMATION") is not None:
+            cfg.enable_price_estimation = os.getenv("ENABLE_PRICE_ESTIMATION").lower() in ("true", "1", "yes")
         return cfg
 
     def save(self):
@@ -68,6 +73,8 @@ class DiscordBotConfig:
             if self.log_channel_id is not None:
                 data["log_channel_id"] = self.log_channel_id
             data["auto_attach_report"] = self.auto_attach_report
+
+            data["enable_price_estimation"] = self.enable_price_estimation
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
             self.config_file_path = path

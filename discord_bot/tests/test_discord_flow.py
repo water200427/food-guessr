@@ -164,5 +164,102 @@ class TestDiscordBotLogic(unittest.IsolatedAsyncioTestCase):
             import shutil
             shutil.rmtree(test_dir, ignore_errors=True)
 
+
+    def test_price_estimation_formatting_enabled(self):
+        """測試開啟菜單計價選配時，正確排版品項清單與預估總價"""
+        from bot import format_price_estimation, config
+        orig = config.enable_price_estimation
+        try:
+            config.enable_price_estimation = True
+            case_data = {
+                "price_estimation": {
+                    "currency": "TWD",
+                    "menu_date": "2026-07",
+                    "items": [
+                        {"name": "鮮蝦蒸餃", "spec": "一籠8顆", "quantity": 1, "unit_price": 150, "subtotal": 150},
+                        {"name": "酸辣湯", "quantity": 2, "unit_price": 45, "subtotal": 90}
+                    ],
+                    "total_price": 240,
+                    "notes": "免服務費"
+                }
+            }
+            lines = format_price_estimation(case_data)
+            self.assertTrue(any("2026-07 最新菜單" in l for l in lines))
+            self.assertTrue(any("鮮蝦蒸餃（一籠8顆）：$150" in l for l in lines))
+            self.assertTrue(any("酸辣湯 × 2：$90" in l for l in lines))
+            self.assertTrue(any("預估總計：約 NT$ 240" in l and "(免服務費)" in l for l in lines))
+        finally:
+            config.enable_price_estimation = orig
+
+    def test_price_estimation_formatting_disabled(self):
+        """測試關閉菜單計價選配時，回傳空列表（不干擾回覆）"""
+        from bot import format_price_estimation, config
+        orig = config.enable_price_estimation
+        try:
+            config.enable_price_estimation = False
+            case_data = {
+                "price_estimation": {
+                    "items": [{"name": "牛肉麵", "subtotal": 180}],
+                    "total_price": 180
+                }
+            }
+            lines = format_price_estimation(case_data)
+            self.assertEqual(lines, [], "關閉選配時必須回傳空列表")
+        finally:
+            config.enable_price_estimation = orig
+
+    def test_price_estimation_backward_compatibility(self):
+        """測試向下相容舊案件 (只有 leading_candidate.dish 與 estimated_total)"""
+        from bot import format_price_estimation, config
+        orig = config.enable_price_estimation
+        try:
+            config.enable_price_estimation = True
+            case_data = {
+                "leading_candidate": {
+                    "name": "某餐廳",
+                    "dish": "招牌乾麵",
+                    "estimated_total": "NT$ 60"
+                }
+            }
+            lines = format_price_estimation(case_data)
+            self.assertTrue(any("招牌乾麵" in l for l in lines))
+            self.assertTrue(any("預估總計：約 NT$ 60" in l for l in lines))
+        finally:
+            config.enable_price_estimation = orig
+
+
+    def test_case_manager_markdown_and_json_schema(self):
+        """測試新建立的案件檔案包含最新餐點與價位試算骨架與標準 JSON 欄位"""
+        import tempfile
+        import json
+        from services.case_manager import CaseManager
+        test_dir = tempfile.mkdtemp()
+        try:
+            cm = CaseManager(cases_dir=test_dir)
+            img_path = os.path.join(test_dir, "test.jpg")
+            with open(img_path, "wb") as f:
+                f.write(b"dummy")
+
+            cid = cm.create_case_from_discord(img_path, 111, 222, "tester")
+            case_folder = os.path.join(test_dir, f"案件-{cid}")
+            md_path = os.path.join(case_folder, f"案件-{cid}-Discord照片.md")
+            json_path = os.path.join(case_folder, f"案件-{cid}.json")
+
+            with open(md_path, "r", encoding="utf-8") as f:
+                md_text = f.read()
+            self.assertIn("### 餐點品項與價位試算", md_text)
+            self.assertIn("預估總金額", md_text)
+
+            with open(json_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            self.assertIn("price_estimation", data)
+            self.assertIn("leading_candidate", data)
+            self.assertIn("resolved", data)
+            self.assertFalse(data["resolved"])
+            self.assertEqual(data["status"], "investigating")
+        finally:
+            import shutil
+            shutil.rmtree(test_dir, ignore_errors=True)
+
 if __name__ == "__main__":
     unittest.main()

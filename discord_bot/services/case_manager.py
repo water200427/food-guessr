@@ -135,13 +135,34 @@ class CaseManager:
         next_num = max(existing_ids, default=0) + 1
         return f"{next_num:03d}"
 
+    def get_case_jump_url(self, case_data: dict, default_guild_id: Optional[int] = None) -> Optional[str]:
+        """
+        取得案件對應的 Discord 原始訊息跳轉連結 (jump_url)。
+        優先讀取儲存的 jump_url；若無則自動由 guild_id、channel_id 與 message_id 兜底合成。
+        """
+        if not case_data:
+            return None
+        meta = case_data.get("discord_meta") or {}
+        if meta.get("jump_url"):
+            return meta.get("jump_url")
+
+        channel_id = meta.get("channel_id")
+        message_id = meta.get("message_id")
+        if not channel_id or not message_id:
+            return None
+
+        guild_id = meta.get("guild_id") or default_guild_id or "@me"
+        return f"https://discord.com/channels/{guild_id}/{channel_id}/{message_id}"
+
     def create_case_from_discord(
         self,
         image_path: str,
         channel_id: int,
         message_id: int,
         author_name: str,
-        guess_candidates: List[str] = None
+        guess_candidates: List[str] = None,
+        guild_id: Optional[int] = None,
+        jump_url: Optional[str] = None
     ) -> str:
         """
         為疑難照片建立新案件 (JPG + Markdown + JSON)，內建去重防護
@@ -173,27 +194,31 @@ class CaseManager:
         # 1. 複製圖片至案件專屬目錄
         shutil.copy2(image_path, dest_jpg)
 
-        # 2. 建立 JSON 資料檔（不再列入群友未篩選發言，避免消耗 Token）
+        # 2. 建立 JSON 資料檔（包含 guild_id、jump_url 與標準 Schema 骨架）
         case_data = {
             "case_id": case_id,
             "case_title": "Discord 上傳照片辨識",
             "source": "discord",
             "discord_meta": {
+                "guild_id": guild_id,
                 "channel_id": channel_id,
                 "message_id": message_id,
+                "jump_url": jump_url or f"https://discord.com/channels/{guild_id or '@me'}/{channel_id}/{message_id}",
                 "author": author_name,
                 "created_at": time.time()
             },
             "status": "investigating",
-            "guesses": [],
-            "exclusions": [],
+            "resolved": False,
+            "discord_notified": False,
             "leading_candidate": None,
-            "resolved": False
+            "price_estimation": None,
+            "guesses": [],
+            "exclusions": []
         }
         with open(dest_json, "w", encoding="utf-8") as f:
             json.dump(case_data, f, ensure_ascii=False, indent=2)
 
-        # 3. 依據模板建立 Markdown 檔案（不再列入群友猜測，節省 Token）
+        # 3. 依據模板建立 Markdown 檔案（包含最新餐點與價位試算骨架）
         today_str = time.strftime("%Y-%m-%d")
         md_content = f"""# 餐廳辨識案件
 
@@ -243,6 +268,18 @@ class CaseManager:
 - 把握度：低／中／高
 - 主要依據：
 - 尚未確認之處：
+
+### 餐點品項與價位試算
+
+- 參考菜單來源：（如：Google Maps 2026年最新菜單照片／店家官方價目表）
+- 價目表日期：（如：2026 年）
+- 幣別：新台幣 (TWD)
+
+| 辨識品項 | 規格／數量 | 單價 | 小計 | 照片依據與備註 |
+| --- | --- | --- | --- | --- |
+
+- **預估總金額：**
+- 費用與低消備註：（如：免收服務費／內用需加收 10% 服務費／無低消限制）
 """
         with open(dest_md, "w", encoding="utf-8") as f:
             f.write(md_content)

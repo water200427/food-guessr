@@ -12,27 +12,41 @@
   },
   "status": "resolved",
   "resolved": true,
+  "discord_notified": true,
   "leading_candidate": {
     "name": "蓋子美式餐廳（板橋店）",
     "google_maps_url": "https://maps.app.goo.gl/P7HVEqra8Ua9KyH96",
+    "maps_url": "https://maps.app.goo.gl/P7HVEqra8Ua9KyH96",
     "address": "新北市板橋區建國街127號",
     "confidence": "高",
-    "price_estimation": {
-      "items": [
-        {
-          "name": "墨西哥辣肉醬牛肉漢堡（布里歐麵包）",
-          "quantity": 1,
-          "price": 245
-        },
-        {
-          "name": "升級經典套餐（玉米脆片佐莎莎醬＋冰紅茶）",
-          "quantity": 1,
-          "price": 100
-        }
-      ],
-      "service_fee": "免收服務費 (0%)",
-      "total_twd": 345
-    }
+    "dish": "墨西哥辣肉醬牛肉漢堡（布里歐麵包，附玉米脆片套餐，預估 $345）",
+    "is_open": true
+  },
+  "price_estimation": {
+    "currency": "TWD",
+    "menu_date": "2026",
+    "menu_source": "Google Maps 2026最新菜單照片 / 蓋子美式餐廳官方最新價目表",
+    "items": [
+      {
+        "name": "墨西哥辣肉醬牛肉漢堡",
+        "spec": "布里歐麵包",
+        "quantity": 1,
+        "unit_price": 245,
+        "subtotal": 245,
+        "notes": "手打純牛漢堡排、起司、墨西哥辣肉醬、酸黃瓜"
+      },
+      {
+        "name": "升級經典附餐套餐",
+        "spec": "玉米脆片佐莎莎醬＋冰紅茶",
+        "quantity": 1,
+        "unit_price": 100,
+        "subtotal": 100,
+        "notes": "附新鮮番茄莎莎醬，基本冰飲可續杯"
+      }
+    ],
+    "service_fee_percent": 0,
+    "total_price": 345,
+    "additional_fees_note": "半自助式取水與醬料，免收 10% 服務費"
   },
   "guesses": [
     {
@@ -64,6 +78,5 @@
       "verdict": "備選（同體系二店）"
     }
   ],
-  "exclusions": [],
-  "discord_notified": true
+  "exclusions": []
 }
