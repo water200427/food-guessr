@@ -12,18 +12,21 @@
   },
   "status": "resolved",
   "resolved": true,
-  "discord_notified": true,
+  "discord_notified": false,
   "images": [
     "案件-029-Discord照片.jpg"
   ],
   "leading_candidate": {
-    "name": "非實體餐廳（日本 7-Eleven 超商外帶點心／日本商旅客房內食用）",
+    "name": "日本 7-Eleven 超商點心（布丁＋優格，於飯店客房內食用）",
     "google_maps_url": null,
     "maps_url": null,
     "address": "日本全國各 7-Eleven 門市販售 / 日本商務飯店客房",
     "confidence": "極高",
-    "dish": "エグパティシエール使用 カスタードプリン ＋ セブンプレミアム のむヨーグルト ブルーベリー",
-    "is_open": true
+    "dish": "布丁 ＋ 藍莓優格飲（エグパティシエール使用 カスタードプリン ＋ セブンプレミアム のむヨーグルト ブルーベリー）",
+    "is_open": true,
+    "is_restaurant": false,
+    "is_retail": true,
+    "is_homemade": false
   },
   "price_estimation": {
     "currency": "JPY",
@@ -31,7 +34,7 @@
     "menu_source": "日本セブン-イレブン（7-Eleven Japan）官方商品情報",
     "items": [
       {
-        "name": "セブン-イレブン エグパティシエール使用 カスタードプリン",
+        "name": "セブン-イレブン カスタードプリン（卡士達布丁）",
         "spec": "冷藏布丁 1 杯（附塑膠湯匙）",
         "quantity": 1,
         "unit_price": 289,
@@ -39,7 +42,7 @@
         "notes": "杯蓋標籤印有 268円(税込289.44円)，含稅 8% 輕減稅率"
       },
       {
-        "name": "セブンプレミアム のむヨーグルト ブルーベリー",
+        "name": "セブンプレミアム のむヨーグルト ブルーベリー（藍莓優格飲）",
         "spec": "優酪乳 190g",
         "quantity": 1,
         "unit_price": 183,
