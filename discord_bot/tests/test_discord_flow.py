@@ -347,5 +347,35 @@ class TestDiscordBotLogic(unittest.IsolatedAsyncioTestCase):
             import shutil
             shutil.rmtree(test_dir, ignore_errors=True)
 
+
+    def test_homemade_cooking_no_maps_url(self):
+        """測試手作自煮料理 (is_homemade=True 或店名含手作/自煮) 絕對不產生 Google 地點連結"""
+        from bot import extract_maps_url
+        lead1 = {
+            "name": "這是自己手作的料理",
+            "is_homemade": True,
+            "google_maps_url": "https://maps.app.goo.gl/dummy"
+        }
+        self.assertEqual(extract_maps_url(lead1), "", "手作料理絕不應產生 Maps 連結")
+
+        lead2 = {
+            "name": "自製家常炒飯",
+            "address": "台北市某住家",
+            "maps_url": ""
+        }
+        self.assertEqual(extract_maps_url(lead2), "", "含有自製關鍵字且無明確店名時絕不產生 Maps 連結")
+
+    def test_homemade_cooking_price_estimation_format(self):
+        """測試手作自煮料理的價格資訊排版為自家愛心無價"""
+        from bot import format_price_estimation
+        case_data = {
+            "leading_candidate": {
+                "name": "自己手作的牛排",
+                "is_homemade": True
+            }
+        }
+        lines = format_price_estimation(case_data)
+        self.assertTrue(any("自家用心烹飪，愛心無價" in l for l in lines))
+
 if __name__ == "__main__":
     unittest.main()

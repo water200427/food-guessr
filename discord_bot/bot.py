@@ -142,6 +142,8 @@ async def start_investigation(message: discord.Message, image_paths: Union[str, 
             f"請利用本機 Chrome 9222、Google Lens、以圖搜尋與 Google Maps 進行深度微型物證排查，"
             f"核對近期營業狀態與器皿。\n"
             f"{price_instruction}"
+            f"【手作自煮料理識別機制】：若排查無果且物證高度吻合居家生活環境（如電腦桌、家用非成套碗盤、家用紙巾盒或家用調味品），"
+            f"請大膽判定為「這是自己手作的料理（自煮美食）」，填寫 is_restaurant=false、is_homemade=true，且不附 Google Maps 連結即可結案！\n"
             f"確認後更新 案件/案件-{case_id}/案件-{case_id}.json（填寫 leading_candidate、price_estimation、status='resolved'、resolved=true）"
             f"與對應的 .md 檔案（在結論中附帶餐點品項與價位試算）以完成結案！"
         )
@@ -164,8 +166,13 @@ def extract_maps_url(lead_dict: dict) -> str:
     import re
     import urllib.parse
 
-    # 0. 若明確標註非餐廳，或名稱包含非餐廳/非實體餐廳，絕對不產生 Google 地點連結
-    if lead_dict.get("is_restaurant") is False or "非餐廳" in lead_dict.get("name", "") or "非實體餐廳" in lead_dict.get("name", ""):
+    # 0. 若明確標註非餐廳、手作自煮，或名稱包含非餐廳/非實體餐廳/手作/自煮，絕對不產生 Google 地點連結
+    cand_name = lead_dict.get("name", "")
+    if (
+        lead_dict.get("is_restaurant") is False or
+        lead_dict.get("is_homemade") is True or
+        any(k in cand_name for k in ["非餐廳", "非實體餐廳", "手作", "自煮", "自製", "自家", "家常"])
+    ):
         return ""
 
     raw_url = (
@@ -200,7 +207,7 @@ def extract_maps_url(lead_dict: dict) -> str:
     # 4. 若無直接網址但有明確實體地址或特定餐廳店名時，產生簡短乾淨連結
     if not raw_url:
         target = lead_dict.get("address") or lead_dict.get("name") or ""
-        if target and not any(k in target for k in ["非餐廳", "非實體", "直播", "未確認"]):
+        if target and not any(k in target for k in ["非餐廳", "非實體", "直播", "未確認", "手作", "自煮", "自製", "自家", "家常"]):
             return f"https://maps.google.com/?q={target}"
         return ""
 
@@ -216,8 +223,12 @@ def format_price_estimation(case_data: dict) -> list:
         return []
 
     lines = []
-    pe = case_data.get("price_estimation") or {}
     lead = case_data.get("leading_candidate", {}) or {}
+    cand_name = lead.get("name", "") if isinstance(lead, dict) else ""
+    if isinstance(lead, dict) and (lead.get("is_homemade") or any(k in cand_name for k in ["手作", "自煮", "自製", "自家", "家常"])):
+        return ["🍳 **餐點資訊**：自家用心烹飪，愛心無價 ❤️"]
+
+    pe = case_data.get("price_estimation") or {}
     if not pe and isinstance(lead, dict) and lead.get("price_estimation"):
         pe = lead.get("price_estimation") or {}
 
