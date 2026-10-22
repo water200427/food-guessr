@@ -1,0 +1,73 @@
+{
+  "case_id": "029",
+  "case_title": "Discord 上傳照片辨識 - 日本 7-Eleven 超商甜點（非實體餐廳）",
+  "source": "discord",
+  "discord_meta": {
+    "guild_id": 738757200780066839,
+    "channel_id": 852925615799009321,
+    "message_id": 1562822194109747340,
+    "jump_url": "https://discord.com/channels/738757200780066839/852925615799009321/1562822194109747340",
+    "author": "water200427",
+    "created_at": 1792676248.869174
+  },
+  "status": "resolved",
+  "resolved": true,
+  "discord_notified": false,
+  "images": [
+    "案件-029-Discord照片.jpg"
+  ],
+  "leading_candidate": {
+    "name": "非實體餐廳（日本 7-Eleven 超商外帶點心／日本商旅客房內食用）",
+    "google_maps_url": null,
+    "maps_url": null,
+    "address": "日本全國各 7-Eleven 門市販售 / 日本商務飯店客房",
+    "confidence": "極高",
+    "dish": "エグパティシエール使用 カスタードプリン ＋ セブンプレミアム のむヨーグルト ブルーベリー",
+    "is_open": true
+  },
+  "price_estimation": {
+    "currency": "JPY",
+    "menu_date": "2026",
+    "menu_source": "日本セブン-イレブン（7-Eleven Japan）官方商品情報",
+    "items": [
+      {
+        "name": "セブン-イレブン エグパティシエール使用 カスタードプリン",
+        "spec": "冷藏布丁 1 杯（附塑膠湯匙）",
+        "quantity": 1,
+        "unit_price": 289,
+        "subtotal": 289,
+        "notes": "杯蓋標籤印有 268円(税込289.44円)，含稅 8% 輕減稅率"
+      },
+      {
+        "name": "セブンプレミアム のむヨーグルト ブルーベリー",
+        "spec": "優酪乳 190g",
+        "quantity": 1,
+        "unit_price": 183,
+        "subtotal": 183,
+        "notes": "含稅 8% 輕減稅率（本體 170 円）"
+      }
+    ],
+    "service_fee_percent": 0,
+    "total_price": 472,
+    "additional_fees_note": "便利商店外帶食品適用日本消費稅輕減稅率 8%，免服務費無低消"
+  },
+  "guesses": [
+    {
+      "name": "日本 7-Eleven 超商外帶點心（セブン-イレブン）",
+      "google_maps_url": null,
+      "address": "日本各分店通用零售",
+      "status": "常態販售中",
+      "match_points": [
+        "布丁杯蓋封膜印有明確價格「268円(税込289.44円)」與 7-11 御用專用蛋「エグパティシエール」商標",
+        "優酪乳印有 7&i 集團標誌與「のむヨーグルト ブルーベリー」字樣",
+        "兩項商品皆黏有日本 7-Eleven 專用橘色 7 標籤膠帶，布丁杯蓋固定有外帶透明塑膠匙",
+        "背景為日本商務旅館客房標準陳設（蜂巢紋浴衣睡袍、乾淨純白毛巾、美耐板辦公書桌與客房手冊）"
+      ],
+      "contradictions": [
+        "非獨立實體餐廳內用餐點，係日本超商零售商品外帶於飯店客房享用"
+      ],
+      "verdict": "判定為超商外帶食品（非餐廳）"
+    }
+  ],
+  "exclusions": []
+}
