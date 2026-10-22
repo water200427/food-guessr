@@ -147,7 +147,15 @@ async def start_investigation(message: discord.Message, image_paths: Union[str, 
             f"確認後更新 案件/案件-{case_id}/案件-{case_id}.json（填寫 leading_candidate、price_estimation、status='resolved'、resolved=true）"
             f"與對應的 .md 檔案（在結論中附帶餐點品項與價位試算）以完成結案！"
         )
-        cmd = ["cmd.exe", "/c", "agentapi", "new-conversation", f"--title=案件-{case_id} 調查", prompt]
+        agentapi_bin = shutil.which("agentapi")
+        if not agentapi_bin:
+            default_bin = os.path.expanduser(r"~\.gemini\antigravity\bin\agentapi.bat")
+            if os.path.exists(default_bin):
+                agentapi_bin = default_bin
+            else:
+                agentapi_bin = "agentapi"
+
+        cmd = ["cmd.exe", "/c", agentapi_bin, "new-conversation", f"--title=案件-{case_id} 調查", prompt]
         res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
         if res.returncode == 0:
             print(f"[貓貓偵探 🚀] 已成功為【案件-{case_id}】自動開啟獨立調查新對話！")
@@ -627,6 +635,10 @@ async def monitor_investigation_progress():
 
 @client.event
 async def on_ready():
+    if getattr(client, "_tasks_started", False):
+        return
+    client._tasks_started = True
+
     print("=" * 55)
     print(f"[+] 這哪家小貓偵探機器人已成功上線！🐾")
     print(f"[+] 機器人帳號: {client.user} (ID: {client.user.id})")
