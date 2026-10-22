@@ -377,5 +377,57 @@ class TestDiscordBotLogic(unittest.IsolatedAsyncioTestCase):
         lines = format_price_estimation(case_data)
         self.assertTrue(any("自家用心烹飪，愛心無價" in l for l in lines))
 
+
+    def test_real_restaurant_with_shouzuo_or_jiachang_not_misidentified(self):
+        """[核心防禦] 測試店名包含『手作』或『家常』的真實餐廳絕不被誤判為自煮料理！"""
+        from bot import is_homemade_meal, extract_maps_url, format_price_estimation
+
+        # 案例 1: 實體店名包含「手作」
+        real_shop1 = {
+            "name": "初魚 手作鐵板燒",
+            "google_maps_url": "https://maps.app.goo.gl/chuyu123",
+            "is_restaurant": True
+        }
+        self.assertFalse(is_homemade_meal(real_shop1), "初魚手作鐵板燒不得被判定為手作自煮料理")
+        self.assertEqual(extract_maps_url(real_shop1), "https://maps.app.goo.gl/chuyu123", "必須完整保留 Maps 網址")
+
+        # 驗證菜單價格試算不會被誤判為自煮愛心無價
+        case1 = {
+            "leading_candidate": real_shop1,
+            "price_estimation": {
+                "items": [{"name": "無菜單套餐", "unit_price": 1800, "subtotal": 1800}],
+                "total_price": 1800
+            }
+        }
+        lines1 = format_price_estimation(case1)
+        self.assertTrue(any("無菜單套餐" in l for l in lines1), "實體手作餐廳必須正常列出菜單價格")
+        self.assertFalse(any("愛心無價" in l for l in lines1), "實體手作餐廳絕不能顯示自煮愛心無價")
+
+        # 案例 2: 實體店名包含「家常」
+        real_shop2 = {
+            "name": "小川家常菜",
+            "address": "台北市大安區和平東路"
+        }
+        self.assertFalse(is_homemade_meal(real_shop2), "小川家常菜不得被判定為自煮料理")
+        url2 = extract_maps_url(real_shop2)
+        self.assertTrue(url2.startswith("https://maps.google.com/?q="), "必須正常產生導航連結")
+        self.assertIn("和平東路", url2)
+
+    def test_genuine_homemade_cooking_identified(self):
+        """測試真正的自煮料理 (包含自己手作、is_homemade 等) 精準識別"""
+        from bot import is_homemade_meal, extract_maps_url, format_price_estimation
+
+        home1 = {
+            "name": "自己手作的法式千層蛋糕",
+            "is_homemade": True
+        }
+        self.assertTrue(is_homemade_meal(home1), "明確標註 is_homemade 必須判定為自煮手作")
+        self.assertEqual(extract_maps_url(home1), "", "自煮料理絕不產生 Maps 網址")
+
+        home2 = {
+            "name": "自己煮的家常牛肉麵"
+        }
+        self.assertTrue(is_homemade_meal(home2), "店名含『自己煮』必須判定為自煮手作")
+
 if __name__ == "__main__":
     unittest.main()

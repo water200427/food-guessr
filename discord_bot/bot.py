@@ -156,6 +156,41 @@ async def start_investigation(message: discord.Message, image_paths: Union[str, 
     except Exception as e:
         print(f"[貓貓偵探 ⚠️] 呼叫 agentapi 失敗: {e}")
 
+def is_homemade_meal(lead_dict: dict) -> bool:
+    """
+    精準判斷是否為個人居家自煮手作料理，杜絕將「XX手作烘焙」、「XX家常牛肉麵」等實體店家誤判。
+    """
+    if not lead_dict or not isinstance(lead_dict, dict):
+        return False
+
+    # 防線 1: 若明確標註為實體餐廳，絕非自煮
+    if lead_dict.get("is_restaurant") is True:
+        return False
+
+    # 正向特徵 1: 明確標註為自煮手作
+    if lead_dict.get("is_homemade") is True:
+        return True
+
+    # 正向特徵 2: 明確標註非實體餐廳
+    if lead_dict.get("is_restaurant") is False:
+        return True
+
+    # 正向特徵 3: 店名包含高置信度「自煮自製」專屬片語（杜絕單字「手作」或「家常」誤傷真實店家）
+    name = lead_dict.get("name", "")
+    homemade_phrases = [
+        "自己手作", "自己煮", "自己做", "自煮料理", "自煮美食",
+        "親手做", "親手烹調", "親手製作", "自家手作", "自家烹飪",
+        "自煮家常", "自製家常", "自己烘焙", "非餐廳", "非實體餐廳"
+    ]
+    if any(phrase in name for phrase in homemade_phrases):
+        # 若同時具備明確 Google Maps 連結，仍視為實體店家（避免 AI 寫錯店名）
+        raw_url = (lead_dict.get("google_maps_url") or lead_dict.get("maps_url") or "").strip()
+        if raw_url and ("maps.app.goo.gl" in raw_url or "cid=" in raw_url):
+            return False
+        return True
+
+    return False
+
 def extract_maps_url(lead_dict: dict) -> str:
     """
     穩健且乾淨地提取 Google Maps 連結：
@@ -166,13 +201,8 @@ def extract_maps_url(lead_dict: dict) -> str:
     import re
     import urllib.parse
 
-    # 0. 若明確標註非餐廳、手作自煮，或名稱包含非餐廳/非實體餐廳/手作/自煮，絕對不產生 Google 地點連結
-    cand_name = lead_dict.get("name", "")
-    if (
-        lead_dict.get("is_restaurant") is False or
-        lead_dict.get("is_homemade") is True or
-        any(k in cand_name for k in ["非餐廳", "非實體餐廳", "手作", "自煮", "自製", "自家", "家常"])
-    ):
+    # 0. 若經研判確認為個人自煮料理或非實體餐廳，絕對不產生 Google 地點連結
+    if is_homemade_meal(lead_dict):
         return ""
 
     raw_url = (
@@ -207,7 +237,7 @@ def extract_maps_url(lead_dict: dict) -> str:
     # 4. 若無直接網址但有明確實體地址或特定餐廳店名時，產生簡短乾淨連結
     if not raw_url:
         target = lead_dict.get("address") or lead_dict.get("name") or ""
-        if target and not any(k in target for k in ["非餐廳", "非實體", "直播", "未確認", "手作", "自煮", "自製", "自家", "家常"]):
+        if target and not any(k in target for k in ["非餐廳", "非實體", "直播", "未確認", "自己手作", "自己煮", "自煮料理"]):
             return f"https://maps.google.com/?q={target}"
         return ""
 
@@ -224,8 +254,7 @@ def format_price_estimation(case_data: dict) -> list:
 
     lines = []
     lead = case_data.get("leading_candidate", {}) or {}
-    cand_name = lead.get("name", "") if isinstance(lead, dict) else ""
-    if isinstance(lead, dict) and (lead.get("is_homemade") or any(k in cand_name for k in ["手作", "自煮", "自製", "自家", "家常"])):
+    if isinstance(lead, dict) and is_homemade_meal(lead):
         return ["🍳 **餐點資訊**：自家用心烹飪，愛心無價 ❤️"]
 
     pe = case_data.get("price_estimation") or {}
