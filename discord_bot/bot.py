@@ -6,6 +6,9 @@ import asyncio
 import subprocess
 import traceback
 import builtins
+import shutil
+import re
+import urllib.parse
 from datetime import datetime
 
 # 單一實例保證（防止多重開機或重複回覆）
