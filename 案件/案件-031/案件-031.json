@@ -1,0 +1,129 @@
+{
+  "case_id": "031",
+  "case_title": "Discord 上傳照片辨識 - 福岡久留米 とりかわ博多 かわっこ 久留米店",
+  "source": "discord",
+  "discord_meta": {
+    "guild_id": 738757200780066839,
+    "channel_id": 852925615799009321,
+    "message_id": 1563144130626977952,
+    "jump_url": "https://discord.com/channels/738757200780066839/852925615799009321/1563144130626977952",
+    "author": "water200427",
+    "created_at": 1792753006.0780303
+  },
+  "status": "resolved",
+  "resolved": true,
+  "discord_notified": false,
+  "images": [
+    "案件-031-Discord照片-1.jpg",
+    "案件-031-Discord照片-2.jpg",
+    "案件-031-Discord照片-3.jpg",
+    "案件-031-Discord照片-4.jpg"
+  ],
+  "leading_candidate": {
+    "name": "とりかわ博多 かわっこ 久留米店",
+    "google_maps_url": "https://maps.app.goo.gl/ZCx5APzRSuJ7mejp7",
+    "maps_url": "https://maps.app.goo.gl/ZCx5APzRSuJ7mejp7",
+    "address": "39-24 Higashimachi, Kurume, Fukuoka 830-0032 日本 (福岡縣久留米市東町39-24 天神愛眼ビル 1F)",
+    "confidence": "極高",
+    "dish": "焼きおにぎり、豚バラ串、えのき巻き、せせり、ししゃも、しそ巻き",
+    "is_open": true,
+    "is_restaurant": true,
+    "is_retail": false,
+    "is_homemade": false
+  },
+  "price_estimation": {
+    "currency": "JPY",
+    "menu_date": "2026",
+    "menu_source": "Google Maps 店家相片與 Hotpepper / Retty 官方最新菜單價目表",
+    "items": [
+      {
+        "name": "焼きおにぎり (日式醬油烤飯糰)",
+        "spec": "1 個 (附高菜漬物)",
+        "quantity": 1,
+        "unit_price": 330,
+        "subtotal": 330,
+        "notes": "照片 1 主角，立體厚三角醬油焦香烤飯糰"
+      },
+      {
+        "name": "やよい豚の豚バラ串 (厚切鹽烤豬五花串)",
+        "spec": "1 串 (3 塊)",
+        "quantity": 1,
+        "unit_price": 242,
+        "subtotal": 242,
+        "notes": "照片 2 左側，博多經典豚バラ厚切串燒"
+      },
+      {
+        "name": "えのき巻き (豬肉捲金針菇串)",
+        "spec": "1 串 (3 個肉捲)",
+        "quantity": 1,
+        "unit_price": 286,
+        "subtotal": 286,
+        "notes": "照片 2 右側，雙竹籤並排穿插固定野菜肉卷"
+      },
+      {
+        "name": "せせり (鹽烤雞頸肉串)",
+        "spec": "1 串",
+        "quantity": 1,
+        "unit_price": 220,
+        "subtotal": 220,
+        "notes": "照片 3 主角，彈牙雞頸肉鹽烤胡椒調味"
+      },
+      {
+        "name": "ししゃも (鹽烤柳葉魚串)",
+        "spec": "1 串 (1 尾)",
+        "quantity": 1,
+        "unit_price": 220,
+        "subtotal": 220,
+        "notes": "照片 4 左側，縱向穿籤炙烤柳葉魚"
+      },
+      {
+        "name": "しそ巻き (豬五花紫蘇肉卷串)",
+        "spec": "1 串 (3 個肉捲，附紅梅肉醬)",
+        "quantity": 1,
+        "unit_price": 286,
+        "subtotal": 286,
+        "notes": "照片 4 右側，捲入紫蘇葉，盤角附梅肉醬"
+      },
+      {
+        "name": "生ビール (中杯生啤酒)",
+        "spec": "1 杯",
+        "quantity": 1,
+        "unit_price": 715,
+        "subtotal": 715,
+        "notes": "照片 1、4 背景右上方黃金生啤酒"
+      },
+      {
+        "name": "お通し (開胃生高麗菜小菜)",
+        "spec": "1 人份",
+        "quantity": 1,
+        "unit_price": 330,
+        "subtotal": 330,
+        "notes": "照片 1 左上方黑碗盛裝之博多居酒屋標準席料小菜"
+      }
+    ],
+    "service_fee_percent": 0,
+    "total_price": 2629,
+    "additional_fees_note": "日本內用價格已內含 10% 消費稅，免收額外服務費"
+  },
+  "guesses": [
+    {
+      "name": "とりかわ博多 かわっこ 久留米店",
+      "google_maps_url": "https://maps.app.goo.gl/ZCx5APzRSuJ7mejp7",
+      "address": "福岡縣久留米市東町39-24 天神愛眼ビル 1F",
+      "status": "營業中",
+      "match_points": [
+        "照片 3 黑刷毛目長角陶皿（盤面中央灰白毛筆圓弧刷紋）為店家專用長角皿，與近期相片 100% 吻合",
+        "照片 2 金針菇肉卷採用店家野菜卷專屬之『雙竹籤並排穿插』固定烤法",
+        "照片 4 紫蘇肉卷附紅梅肉醬、烤柳葉魚串均為店家串燒菜單品項",
+        "照片 1 烤飯糰附高菜漬物、白菊割陶盤與店內出餐完全一致",
+        "地點位於西鐵久留米站旁東町，距案件-030（想連 手作り餃子）僅約 350 公尺，完全契合使用者『案件30附近』之地理線索"
+      ],
+      "contradictions": [],
+      "verdict": "唯一確認店家"
+    }
+  ],
+  "exclusions": [
+    "鶏ト飯トリヒロ",
+    "鳥ぶら 久留米一番街店"
+  ]
+}
