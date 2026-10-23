@@ -12,12 +12,13 @@
   },
   "status": "resolved",
   "resolved": true,
-  "discord_notified": false,
+  "discord_notified": true,
   "images": [
     "案件-031-Discord照片-1.jpg",
     "案件-031-Discord照片-2.jpg",
     "案件-031-Discord照片-3.jpg",
-    "案件-031-Discord照片-4.jpg"
+    "案件-031-Discord照片-4.jpg",
+    "案件-031-Discord照片-5.jpg"
   ],
   "leading_candidate": {
     "name": "とりかわ博多 かわっこ 久留米店",
@@ -99,10 +100,26 @@
         "unit_price": 330,
         "subtotal": 330,
         "notes": "照片 1 左上方黑碗盛裝之博多居酒屋標準席料小菜"
+      },
+      {
+        "name": "名物とりかわ（塩かわ）",
+        "spec": "1 串",
+        "quantity": 1,
+        "unit_price": 187,
+        "subtotal": 187,
+        "notes": "照片 5 左側，招牌鹽烤雞皮串"
+      },
+      {
+        "name": "名物とりかわ（タレかわ）",
+        "spec": "1 串",
+        "quantity": 1,
+        "unit_price": 187,
+        "subtotal": 187,
+        "notes": "照片 5 右側，招牌醬燒雞皮串"
       }
     ],
     "service_fee_percent": 0,
-    "total_price": 2629,
+    "total_price": 3003,
     "additional_fees_note": "日本內用價格已內含 10% 消費稅，免收額外服務費"
   },
   "guesses": [
@@ -125,5 +142,14 @@
   "exclusions": [
     "鶏ト飯トリヒロ",
     "鳥ぶら 久留米一番街店"
-  ]
+  ],
+  "hints": [
+    {
+      "time": 1792757020.5554373,
+      "message_id": null,
+      "author": "",
+      "text": "使用者在 Discord 追加招牌名物とりかわ（雞皮串）照片"
+    }
+  ],
+  "timeout_cutoff": true
 }

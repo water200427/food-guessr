@@ -99,9 +99,9 @@ async def set_single_reaction(message: discord.Message, new_emoji: str):
     except Exception as e:
         print(f"[貓貓偵探 ⚠️] 更新唯一表情失敗: {e}")
 
-async def start_investigation(message: discord.Message, image_paths: Union[str, List[str]]):
+async def start_investigation(message: discord.Message, image_paths: Union[str, List[str]], initial_hint: Optional[str] = None):
     """
-    極速立案並觸發 Antigravity 自動開啟獨立調查新對話（支援單圖或多圖聯合排查）
+    極速立案並觸發 Antigravity 自動開啟獨立調查新對話（支援單圖或多圖聯合排查，並納入使用者初始文字提示）
     """
     await set_single_reaction(message, "🕵️")
 
@@ -110,15 +110,19 @@ async def start_investigation(message: discord.Message, image_paths: Union[str, 
     else:
         img_list = list(image_paths)
 
+    clean_hint = initial_hint.strip() if initial_hint else None
+
     case_id = case_manager.create_case_from_discord(
         image_paths=img_list,
         channel_id=message.channel.id,
         message_id=message.id,
         author_name=str(message.author),
         guild_id=message.guild.id if message.guild else None,
-        jump_url=message.jump_url
+        jump_url=message.jump_url,
+        initial_hint=clean_hint
     )
-    print(f"[貓貓偵探 📋] 案件已建檔 (案件-{case_id}，共 {len(img_list)} 張照片)！Discord 已標註 🕵️ 表情。")
+    hint_desc = f"，並附帶初始提示：『{clean_hint}』" if clean_hint else ""
+    print(f"[貓貓偵探 📋] 案件已建檔 (案件-{case_id}，共 {len(img_list)} 張照片{hint_desc})！Discord 已標註 🕵️ 表情。")
 
     # 自動呼叫 agentapi 為該案在 Antigravity 開啟全新獨立對話
     try:
@@ -133,14 +137,23 @@ async def start_investigation(message: discord.Message, image_paths: Union[str, 
             img_bullets = "\n".join([f"  - 案件/案件-{case_id}/案件-{case_id}-Discord照片-{i}.jpg" for i in range(1, len(img_list) + 1)])
             images_section = (
                 f"案件圖片（共 {len(img_list)} 張多視角物證照片）：\n{img_bullets}\n"
-                f"💡 本案包含多視角線索（如環境裝潢、不同餐點或菜單局部），請交叉比對各照片特徵以高把握度破案！"
+                f"💡 本案包含多視角線索（如環境裝潢、不同餐點或菜單局部），請交叉比對各照片特徵以高把握度破案！\n"
             )
         else:
-            images_section = f"案件圖片：案件/案件-{case_id}/案件-{case_id}-Discord照片.jpg"
+            images_section = f"案件圖片：案件/案件-{case_id}/案件-{case_id}-Discord照片.jpg\n"
+
+        hint_section = ""
+        if clean_hint:
+            hint_section = (
+                f"💡【使用者提供之初始提示與線索】：\n"
+                f"「{clean_hint}」\n"
+                f"請嚴格納入判斷考量（例如地點、料理類別或特殊回憶），切勿忽視此關鍵提示！\n\n"
+            )
 
         prompt = (
             f"你是 Antigravity 找餐廳小貓偵探。請嚴格依據 AGENTS.md 與 找餐廳判斷規則.md 調查【案件-{case_id}】。\n"
-            f"{images_section}\n"
+            f"{images_section}"
+            f"{hint_section}"
             f"案件檔案：案件/案件-{case_id}/案件-{case_id}-Discord照片.md 與 案件/案件-{case_id}/案件-{case_id}.json\n"
             f"請利用本機 Chrome 9222、Google Lens、以圖搜尋與 Google Maps 進行深度微型物證排查，"
             f"核對近期營業狀態與器皿。\n"
@@ -166,6 +179,67 @@ async def start_investigation(message: discord.Message, image_paths: Union[str, 
             print(f"[貓貓偵探 ⚠️] 自動開啟新對話異常 (代碼 {res.returncode}): {res.stderr or res.stdout}")
     except Exception as e:
         print(f"[貓貓偵探 ⚠️] 呼叫 agentapi 失敗: {e}")
+
+async def continue_investigation(message: discord.Message, case_id: str, new_images: Optional[List[str]] = None, user_hint: Optional[str] = None):
+    """
+    為既有案件（無論正在調查中或先前已停損）注入新照片或補充文字線索，並喚醒 Antigravity 開啟接續調查對話
+    """
+    await set_single_reaction(message, "🕵️")
+    clean_hint = user_hint.strip() if user_hint else None
+    new_img_list = list(new_images) if new_images else []
+
+    try:
+        added_img_section = ""
+        if new_img_list:
+            bullets = "\n".join([f"  - 案件/案件-{case_id}/{os.path.basename(p)}" for p in new_img_list])
+            added_img_section = (
+                f"📸 使用者在 Discord 追加了 {len(new_img_list)} 張全新多視角物證照片：\n"
+                f"{bullets}\n"
+                f"💡 請特別放大分析追加照片中的招牌菜色、器皿釉紋與微型細節！\n\n"
+            )
+
+        hint_section = ""
+        if clean_hint:
+            hint_section = (
+                f"💡 使用者在 Discord 補充了最新關鍵線索：\n"
+                f"「{clean_hint}」\n"
+                f"請務必將此最新提示列為核心排查條件！\n\n"
+            )
+
+        price_instruction = ""
+        if getattr(config, "enable_price_estimation", True):
+            price_instruction = (
+                "【重要任務：菜單與價目表核對】若確認為實體餐廳與餐點，請進一步參考該店家在 Google Maps 最新（2025～2026年）之菜單/價目表照片，"
+                "精確比對並盤點照片中的餐點品項名稱、規格份量與單價，計算出預估總金額（含幣別與服務費備註）。\n"
+            )
+
+        prompt = (
+            f"你是 Antigravity 找餐廳小貓偵探。【案件-{case_id} 追加線索與接續調查】\n"
+            f"{added_img_section}"
+            f"{hint_section}"
+            f"案件檔案：案件/案件-{case_id}/案件-{case_id}-Discord照片.md 與 案件/案件-{case_id}/案件-{case_id}.json\n"
+            f"請結合既有檔案與最新補充之物證/線索，利用本機 Chrome 9222、Google Lens、Google Maps 進行深度排查。\n"
+            f"{price_instruction}"
+            f"【重要寫檔順序】：調查確認後，必須先完整寫入 Markdown 報告（.md），確認已儲存硬碟後，"
+            f"最後才更新 .json（填寫 leading_candidate、price_estimation、status='resolved'、resolved=true）以完成結案！"
+        )
+
+        agentapi_bin = shutil.which("agentapi")
+        if not agentapi_bin:
+            default_bin = os.path.expanduser(r"~\.gemini\antigravity\bin\agentapi.bat")
+            if os.path.exists(default_bin):
+                agentapi_bin = default_bin
+            else:
+                agentapi_bin = "agentapi"
+
+        cmd = ["cmd.exe", "/c", agentapi_bin, "new-conversation", f"--title=案件-{case_id} 追加線索接續調查", prompt]
+        res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
+        if res.returncode == 0:
+            print(f"[貓貓偵探 🚀] 已為【案件-{case_id}】追加線索並自動開啟接續調查對話！")
+        else:
+            print(f"[貓貓偵探 ⚠️] 開啟接續調查對話異常 (代碼 {res.returncode}): {res.stderr or res.stdout}")
+    except Exception as e:
+        print(f"[貓貓偵探 ⚠️] 呼叫 agentapi 接續調查失敗: {e}")
 
 def is_homemade_meal(lead_dict: dict) -> bool:
     """
@@ -694,12 +768,136 @@ async def on_message(message: discord.Message):
     if not is_mentioned and ("這哪家" in message.content or str(client.user.id) in message.content):
         is_mentioned = True
 
+    # 提取乾淨的使用者文字提示 (去除 mention 與機器人呼喚詞)
+    raw_content = message.content or ""
+    clean_user_text = re.sub(r"<@!?\d+>", "", raw_content)
+    clean_user_text = re.sub(r"\b這哪家\b", "", clean_user_text, flags=re.IGNORECASE).strip()
+
     image_attachments = [
         att for att in message.attachments
         if att.content_type and att.content_type.startswith("image/")
     ]
 
-    # 情境 A: 使用者上傳照片同時 @機器人
+    # =========================================================================
+    # 核心智慧分支 1: 回覆既有案件（回覆原照片訊息 或 回覆停損/立案/結案通知）
+    # =========================================================================
+    ref_case = None
+    ref_msg = None
+    if message.reference and message.reference.message_id:
+        try:
+            ref_msg = await message.channel.fetch_message(message.reference.message_id)
+            if ref_msg:
+                # 判定被回覆的是否為既有案件 (支援原發圖、機器人通知、或二次引用)
+                ref_ref_id = ref_msg.reference.message_id if ref_msg.reference else None
+                ref_case = case_manager.find_case_by_reply(
+                    ref_msg_id=ref_msg.id,
+                    ref_msg_content=ref_msg.content or "",
+                    ref_ref_id=ref_ref_id
+                )
+        except Exception as re_err:
+            print(f"[貓貓偵探 ⚠️] 讀取被引用訊息失敗: {re_err}")
+
+    if ref_case:
+        target_cid = ref_case.get("case_id")
+
+        # 子情境 1.1: 回覆時帶有新照片 ➜ 視為同案件追加新角度照片（絕不另立新案！）
+        if image_attachments:
+            print(f"[貓貓偵探 🔄] 偵測到針對【案件-{target_cid}】追加上傳 {len(image_attachments)} 張新照片！")
+            valid_paths = []
+            for att in image_attachments:
+                local_filename = f"{message.id}_{att.filename}"
+                save_path = os.path.join(scratch_dir, local_filename)
+                await att.save(save_path)
+                is_food, reason = await asyncio.to_thread(food_detector.is_food_image, save_path)
+                if is_food:
+                    valid_paths.append(save_path)
+                else:
+                    print(f"[貓貓偵探 🐾] 追加照片 {att.filename} 判定非有效照片 ({reason})，略過。")
+
+            if valid_paths:
+                case_manager.append_evidence_to_case(
+                    case_id=target_cid,
+                    new_image_paths=valid_paths,
+                    user_hint=clean_user_text if clean_user_text else None,
+                    message_id=message.id,
+                    author_name=str(message.author)
+                )
+                await continue_investigation(
+                    message=message,
+                    case_id=target_cid,
+                    new_images=valid_paths,
+                    user_hint=clean_user_text
+                )
+                reply_txt = f"🐾 已為【案件-{target_cid}】追加 {len(valid_paths)} 張新角度物證照片"
+                if clean_user_text:
+                    reply_txt += f"，並同步記錄補充線索：『{clean_user_text}』"
+                reply_txt += "！偵探貓貓已全速重啟接續排查中～🕵️"
+                await message.reply(reply_txt, mention_author=False)
+                return
+
+        # 子情境 1.2: 回覆時無新照片，但有補充文字提示（非指令） ➜ 追加線索並喚醒排查
+        if clean_user_text and not clean_user_text.startswith("!"):
+            print(f"[貓貓偵探 💡] 偵測到針對【案件-{target_cid}】提供補充文字線索：『{clean_user_text}』！")
+            case_manager.append_evidence_to_case(
+                case_id=target_cid,
+                new_image_paths=None,
+                user_hint=clean_user_text,
+                message_id=message.id,
+                author_name=str(message.author)
+            )
+            await continue_investigation(
+                message=message,
+                case_id=target_cid,
+                new_images=None,
+                user_hint=clean_user_text
+            )
+            reply_txt = f"🐾 已為【案件-{target_cid}】收到補充線索：『{clean_user_text}』！偵探貓貓正在結合新線索全力深入排查中～🕵️"
+            await message.reply(reply_txt, mention_author=False)
+            return
+
+        # 子情境 1.3: 純引用案件訊息但未附帶新物證或提示 (且有 @機器人) ➜ 回報目前進度或既有報告
+        if is_mentioned:
+            ex_lead = ref_case.get("leading_candidate", {}) or {}
+            ex_name = ex_lead.get("name") if isinstance(ex_lead, dict) else str(ex_lead)
+            ex_status = ref_case.get("status")
+            if ref_case.get("resolved") and ex_name:
+                display_name = ex_name if ex_name.startswith("這是") else f"這是 {ex_name}"
+                reply_lines = [display_name]
+                ex_maps = extract_maps_url(ex_lead)
+                if ex_maps:
+                    reply_lines.append(ex_maps)
+                price_lines = format_price_estimation(ref_case)
+                if price_lines:
+                    reply_lines.extend(price_lines)
+                ex_json_path = ref_case.get("_json_path")
+                ex_md_path = case_manager.get_case_md_path(target_cid, ex_json_path)
+                ex_file = None
+                if getattr(config, "auto_attach_report", False):
+                    if ex_md_path:
+                        ex_gh_url = case_manager.get_github_md_url(ex_md_path)
+                        if ex_gh_url:
+                            reply_lines.append(f"📝 調查報告：{ex_gh_url}")
+                        if os.path.exists(ex_md_path):
+                            ex_file = discord.File(ex_md_path, filename=os.path.basename(ex_md_path))
+                else:
+                    reply_lines.append(f"*(輸入 `!report` 或 `!report {target_cid}` 可調出完整調查報告)*")
+
+                if config.reply_footer:
+                    reply_lines.append(config.reply_footer)
+                if ex_file:
+                    await message.reply("\n".join(reply_lines), file=ex_file, mention_author=False)
+                else:
+                    await message.reply("\n".join(reply_lines), mention_author=False)
+                await set_single_reaction(message, "✅")
+                return
+            elif ex_status == "investigating":
+                await set_single_reaction(message, "🕵️")
+                await message.reply(f"🐾 偵探貓貓正在為此照片進行深度微型物證排查（案件-{target_cid}），請稍候片刻！", mention_author=False)
+                return
+
+    # =========================================================================
+    # 核心智慧分支 2: 全新發起案件 (上傳照片同時 @機器人，支援初始文字提示)
+    # =========================================================================
     if image_attachments and is_mentioned:
         existing_case = case_manager.find_case_by_message(message.id)
         if existing_case:
@@ -712,11 +910,9 @@ async def on_message(message: discord.Message):
                 ex_maps = extract_maps_url(ex_lead)
                 if ex_maps:
                     reply_lines.append(ex_maps)
-
                 price_lines = format_price_estimation(existing_case)
                 if price_lines:
                     reply_lines.extend(price_lines)
-
                 ex_case_id = existing_case.get("case_id")
                 ex_json_path = existing_case.get("_json_path")
                 ex_md_path = case_manager.get_case_md_path(ex_case_id, ex_json_path)
@@ -744,7 +940,8 @@ async def on_message(message: discord.Message):
                 await message.reply(f"🐾 偵探貓貓正在為此照片進行深度微型物證排查（案件-{existing_case.get('case_id')}），請稍候片刻！", mention_author=False)
                 return
 
-        print(f"[貓貓偵探 📸] 收到來自【{message.author}】上傳的 {len(image_attachments)} 張照片！")
+        hint_info = f"，附帶提示：『{clean_user_text}』" if clean_user_text else ""
+        print(f"[貓貓偵探 📸] 收到來自【{message.author}】上傳的 {len(image_attachments)} 張照片{hint_info}！")
         valid_paths = []
         for att in image_attachments:
             local_filename = f"{message.id}_{att.filename}"
@@ -760,10 +957,12 @@ async def on_message(message: discord.Message):
 
         if valid_paths:
             print(f"[貓貓偵探 🐟] 共 {len(valid_paths)} 張有效照片！直接啟動找餐廳同案排查流程。")
-            await start_investigation(message, valid_paths)
+            await start_investigation(message, valid_paths, initial_hint=clean_user_text if clean_user_text else None)
         return
 
-    # 情境 B: 使用者回覆某則圖片訊息並 @機器人
+    # =========================================================================
+    # 核心智慧分支 3: 回覆未立案之歷史圖片訊息並 @機器人
+    # =========================================================================
     if is_mentioned and message.reference:
         try:
             ref_msg = await message.channel.fetch_message(message.reference.message_id)
@@ -772,49 +971,6 @@ async def on_message(message: discord.Message):
                 if att.content_type and att.content_type.startswith("image/")
             ]
             if ref_images:
-                existing_case = case_manager.find_case_by_message(ref_msg.id)
-                if existing_case:
-                    ex_lead = existing_case.get("leading_candidate", {}) or {}
-                    ex_name = ex_lead.get("name")
-                    ex_status = existing_case.get("status")
-                    if existing_case.get("resolved") and ex_name:
-                        display_name = ex_name if ex_name.startswith("這是") else f"這是 {ex_name}"
-                        reply_lines = [display_name]
-                        ex_maps = extract_maps_url(ex_lead)
-                        if ex_maps:
-                            reply_lines.append(ex_maps)
-
-                        price_lines = format_price_estimation(existing_case)
-                        if price_lines:
-                            reply_lines.extend(price_lines)
-
-                        ex_case_id = existing_case.get("case_id")
-                        ex_json_path = existing_case.get("_json_path")
-                        ex_md_path = case_manager.get_case_md_path(ex_case_id, ex_json_path)
-                        ex_file = None
-                        if getattr(config, "auto_attach_report", False):
-                            if ex_md_path:
-                                ex_gh_url = case_manager.get_github_md_url(ex_md_path)
-                                if ex_gh_url:
-                                    reply_lines.append(f"📝 調查報告：{ex_gh_url}")
-                                if os.path.exists(ex_md_path):
-                                    ex_file = discord.File(ex_md_path, filename=os.path.basename(ex_md_path))
-                        else:
-                            reply_lines.append(f"*(輸入 `!report` 或 `!report {ex_case_id}` 可調出完整調查報告)*")
-
-                        if config.reply_footer:
-                            reply_lines.append(config.reply_footer)
-                        if ex_file:
-                            await message.reply("\n".join(reply_lines), file=ex_file, mention_author=False)
-                        else:
-                            await message.reply("\n".join(reply_lines), mention_author=False)
-                        await set_single_reaction(message, "✅")
-                        return
-                    elif ex_status == "investigating":
-                        await set_single_reaction(message, "🕵️")
-                        await message.reply(f"🐾 偵探貓貓正在為此照片進行深度微型物證排查（案件-{existing_case.get('case_id')}），請稍候片刻！", mention_author=False)
-                        return
-
                 print(f"[貓貓偵探 📜] 抓取到被引用訊息【{ref_msg.id}】中的 {len(ref_images)} 張歷史照片！")
                 valid_paths = []
                 for att in ref_images:
@@ -829,7 +985,7 @@ async def on_message(message: discord.Message):
 
                 if valid_paths:
                     print(f"[貓貓偵探 🐟] 引用照片共 {len(valid_paths)} 張有效！直接啟動找餐廳同案排查流程。")
-                    await start_investigation(ref_msg, valid_paths)
+                    await start_investigation(ref_msg, valid_paths, initial_hint=clean_user_text if clean_user_text else None)
                 return
         except Exception as e:
             print(f"[貓貓偵探 ⚠️] 解析引用歷史訊息失敗: {e}")

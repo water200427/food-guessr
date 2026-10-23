@@ -114,6 +114,56 @@ class CaseManager:
                 pass
         return None
 
+    def find_case_by_id(self, case_id: Union[str, int]) -> Optional[Dict[str, Any]]:
+        """依據案件編號 (如 '031' 或 31) 精確查找案件資料"""
+        cid = f"{int(case_id):03d}" if str(case_id).isdigit() else str(case_id)
+        sub_json = os.path.join(self.cases_dir, f"案件-{cid}", f"案件-{cid}.json")
+        root_json = os.path.join(self.cases_dir, f"案件-{cid}.json")
+        target_json = sub_json if os.path.exists(sub_json) else (root_json if os.path.exists(root_json) else None)
+        if target_json:
+            try:
+                with open(target_json, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                data["_json_path"] = target_json
+                return data
+            except Exception:
+                pass
+        return None
+
+    def find_case_by_reply(
+        self,
+        ref_msg_id: int,
+        ref_msg_content: str = "",
+        ref_ref_id: Optional[int] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        全方位解析 Discord 回覆訊息所指向的目標案件：
+        1. 直接比對被引用訊息之 message_id（若引用原發圖訊息）
+        2. 從被引用訊息內文中正則解析案件編號（如引用機器人的停損/立案/結案通知）
+        3. 向上追溯被引用訊息自身之 reference_id（若機器人訊息曾引用原圖）
+        """
+        # 途徑 1: 直接以被引用的 message_id 查詢
+        case = self.find_case_by_message(ref_msg_id)
+        if case:
+            return case
+
+        # 途徑 2: 從被引用訊息內文中提取「案件-00X」或「案件-XXX」
+        if ref_msg_content:
+            m = re.search(r"案件[-—_](\d{1,4})", ref_msg_content)
+            if m:
+                cid = f"{int(m.group(1)):03d}"
+                case = self.find_case_by_id(cid)
+                if case:
+                    return case
+
+        # 途徑 3: 向上追溯 reference 的 reference
+        if ref_ref_id:
+            case = self.find_case_by_message(ref_ref_id)
+            if case:
+                return case
+
+        return None
+
     def find_case_by_image_hash(self, image_path: str) -> Optional[Dict[str, Any]]:
         """比對照片特徵 SHA256，確認是否與既有案件照片完全相同"""
         target_hash = self.compute_file_hash(image_path)
@@ -199,11 +249,12 @@ class CaseManager:
         guess_candidates: List[str] = None,
         guild_id: Optional[int] = None,
         jump_url: Optional[str] = None,
-        image_path: Optional[str] = None
+        image_path: Optional[str] = None,
+        initial_hint: Optional[str] = None
     ) -> str:
         """
         為疑難照片建立新案件 (支援單圖或多圖合併為同一案)，內建去重防護與標準 Schema 結構。
-        完美相容 image_paths (多圖/單圖列表) 與 image_path (傳統單圖參數)。
+        完美相容 image_paths (多圖/單圖列表) 與 image_path (傳統單圖參數)，支援使用者初始提示文字。
         """
         actual_input = image_paths if image_paths is not None else image_path
         if actual_input is None:
@@ -256,6 +307,8 @@ class CaseManager:
         dest_md = os.path.join(case_dir, f"案件-{case_id}-Discord照片.md")
         dest_json = os.path.join(case_dir, f"案件-{case_id}.json")
 
+        clean_initial_hint = initial_hint.strip() if initial_hint else None
+
         # 2. 建立 JSON 資料檔（包含 guild_id、jump_url、images 清單與標準 Schema 骨架）
         case_data = {
             "case_id": case_id,
@@ -269,6 +322,8 @@ class CaseManager:
                 "author": author_name,
                 "created_at": time.time()
             },
+            "initial_hint": clean_initial_hint,
+            "hints": [{"time": time.time(), "message_id": message_id, "author": author_name, "text": clean_initial_hint}] if clean_initial_hint else [],
             "status": "investigating",
             "resolved": False,
             "discord_notified": False,
@@ -283,6 +338,7 @@ class CaseManager:
 
         # 3. 依據模板建立 Markdown 檔案（支援多圖展示與最新餐點價位試算骨架）
         today_str = time.strftime("%Y-%m-%d")
+        hint_md_line = f"- 使用者初始提示：{clean_initial_hint}\n" if clean_initial_hint else ""
         if len(copied_filenames) == 1:
             md_images = f"![案件照片]({copied_filenames[0]})"
             case_desc = f"Discord 頻道由 {author_name} 上傳之食物照片"
@@ -301,7 +357,7 @@ class CaseManager:
 
 ## 使用者提供的範圍與限制
 
-- 可能地點：依規則預設（台北、桃園、台南），必要時擴大
+{hint_md_line}- 可能地點：依規則預設（台北、桃園、台南），必要時擴大
 - 指定日期或時間：預設目前仍營業之店家
 - 其他限制：近期器皿不符直接排除
 
@@ -356,6 +412,122 @@ class CaseManager:
 
         print(f"[CaseManager] 疑難案件已成功建檔: {case_folder_name} (案件編號: {case_id}, 共 {len(copied_filenames)} 張照片)")
         return case_id
+
+    def append_evidence_to_case(
+        self,
+        case_id: str,
+        new_image_paths: Optional[List[str]] = None,
+        user_hint: Optional[str] = None,
+        message_id: Optional[int] = None,
+        author_name: str = ""
+    ) -> Optional[Dict[str, Any]]:
+        """
+        為既有案件追加新照片與/或補充文字線索（不開新案）：
+        1. 依序編號保存新照片至案件目錄 (如 案件-00X-Discord照片-5.jpg)
+        2. 更新 JSON images 與 hints 欄位
+        3. 更新 Markdown 的照片觀察與補充線索
+        4. 重置案件狀態為 investigating（若先前停損則自動重新激活調查）
+        """
+        cid = f"{int(case_id):03d}" if str(case_id).isdigit() else str(case_id)
+        case_dir = os.path.join(self.cases_dir, f"案件-{cid}")
+        sub_json = os.path.join(case_dir, f"案件-{cid}.json")
+        root_json = os.path.join(self.cases_dir, f"案件-{cid}.json")
+        json_path = sub_json if os.path.exists(sub_json) else (root_json if os.path.exists(root_json) else None)
+
+        if not json_path or not os.path.exists(json_path):
+            print(f"[CaseManager ⚠️] 找不到案件-{cid} 的 JSON 資料檔，無法追加線索。")
+            return None
+
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                case_data = json.load(f)
+        except Exception as e:
+            print(f"[CaseManager ⚠️] 讀取案件-{cid} 失敗: {e}")
+            return None
+
+        os.makedirs(case_dir, exist_ok=True)
+        md_path = self.get_case_md_path(cid, json_path)
+        existing_images = list(case_data.get("images", []))
+
+        # 1. 處理追加新照片
+        added_filenames = []
+        if new_image_paths:
+            existing_indices = []
+            for img_name in existing_images:
+                m = re.search(r"-Discord照片(?:-(\d+))?\.jpg$", img_name)
+                if m:
+                    idx = int(m.group(1)) if m.group(1) else 1
+                    existing_indices.append(idx)
+            start_idx = max(existing_indices, default=len(existing_images)) + 1
+
+            for offset, src_path in enumerate(new_image_paths):
+                current_idx = start_idx + offset
+                dest_filename = f"案件-{cid}-Discord照片-{current_idx}.jpg"
+                dest_path = os.path.join(case_dir, dest_filename)
+                shutil.copy2(src_path, dest_path)
+                added_filenames.append(dest_filename)
+                existing_images.append(dest_filename)
+
+            case_data["images"] = existing_images
+
+        # 2. 處理補充文字提示
+        clean_hint = user_hint.strip() if user_hint else ""
+        if clean_hint:
+            hints_list = case_data.setdefault("hints", [])
+            hints_list.append({
+                "time": time.time(),
+                "message_id": message_id,
+                "author": author_name,
+                "text": clean_hint
+            })
+
+        # 3. 狀態激活/重置（從停損或結案重新切回排查中）
+        case_data["status"] = "investigating"
+        case_data["resolved"] = False
+        case_data["discord_notified"] = False
+        # 自已通知清單中移除，確保調查完成後能再次通知 Discord
+        if cid in self.notified_case_ids:
+            self.notified_case_ids.remove(cid)
+            self._save_notified_case_ids()
+
+        # 寫回 JSON
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(case_data, f, ensure_ascii=False, indent=2)
+
+        # 4. 更新 Markdown 內容
+        if md_path and os.path.exists(md_path):
+            try:
+                with open(md_path, "r", encoding="utf-8") as f:
+                    md_text = f.read()
+
+                # 追加照片 Markdown
+                if added_filenames:
+                    new_img_md = "\n\n" + "\n\n".join([
+                        f"![案件照片 {current_idx}]({fn})" for current_idx, fn in enumerate(added_filenames, start_idx)
+                    ])
+                    if "### 餐點" in md_text:
+                        md_text = md_text.replace("### 餐點", f"{new_img_md}\n\n### 餐點")
+                    elif "## 照片觀察" in md_text:
+                        pos = md_text.find("## 照片觀察") + len("## 照片觀察")
+                        md_text = md_text[:pos] + f"\n\n{new_img_md}" + md_text[pos:]
+
+                # 追加使用者補充更正文字
+                if clean_hint:
+                    hint_entry = f"- 來自 Discord 補充提示（訊息 ID: {message_id}）：{clean_hint}\n"
+                    if "## 使用者後續補充或更正" in md_text:
+                        pos = md_text.find("## 使用者後續補充或更正") + len("## 使用者後續補充或更正")
+                        md_text = md_text[:pos] + f"\n\n{hint_entry}" + md_text[pos:]
+                    else:
+                        md_text += f"\n\n## 使用者後續補充或更正\n\n{hint_entry}"
+
+                with open(md_path, "w", encoding="utf-8") as f:
+                    f.write(md_text)
+            except Exception as me:
+                print(f"[CaseManager ⚠️] 更新 Markdown 報告失敗: {me}")
+
+        case_data["_json_path"] = json_path
+        print(f"[CaseManager 🌟] 案件-{cid} 成功追加 {len(added_filenames)} 張照片與線索：'{clean_hint}'！")
+        return case_data
 
     def get_investigating_cases(self) -> List[Dict[str, Any]]:
         """
