@@ -311,34 +311,38 @@ def format_price_estimation(case_data: dict) -> list:
 
     price_prefix = "¥" if currency == "¥" else ("$" if currency in ["NT$", "$"] else f"{currency} ")
 
+    has_item_price = False
     for item in items:
         name = item.get("name", "餐點")
-        spec = item.get("spec") or item.get("specification", "")
+        spec = (item.get("spec") or item.get("specification") or "").strip()
         qty = item.get("quantity", 1)
         unit_price = item.get("unit_price")
         subtotal = item.get("subtotal")
 
-        spec_str = f"（{spec}）" if spec else ""
+        # 極簡清爽排版：規格僅在簡短（<= 8 字，如大碗/190g）且未重複於品項名時顯示；長篇描述留於 !report 報告
+        spec_str = f"（{spec}）" if spec and len(spec) <= 8 and spec not in name else ""
         qty_str = f" × {qty}" if qty and qty > 1 else ""
         if subtotal is not None:
             price_str = f"：{price_prefix}{subtotal}"
+            has_item_price = True
         elif unit_price is not None:
             price_str = f"：{price_prefix}{unit_price}"
+            has_item_price = True
         else:
             price_str = ""
 
         lines.append(f"• {name}{spec_str}{qty_str}{price_str}")
 
-    if total_price is not None:
-        fee_str = f" ({notes})" if notes else ""
-        if isinstance(total_price, (int, float)):
-            lines.append(f"👉 **預估總計：約 {currency} {total_price:,.0f}**{fee_str}")
-        else:
-            lines.append(f"👉 **預估總計：約 {total_price}**{fee_str}")
-    elif notes:
-        lines.append(f"👉 **備註**：{notes}")
-
-    return lines
+    # 若只有單一品項且已清楚標示價格，不重複輸出總計行（保留 12:59 極簡清爽風格）；僅在多品項或未標單價時輸出
+    if len(items) > 1 or not has_item_price:
+        if total_price is not None:
+            fee_str = f" ({notes})" if notes else ""
+            if isinstance(total_price, (int, float)):
+                lines.append(f"👉 **預估總計：約 {currency} {total_price:,.0f}**{fee_str}")
+            else:
+                lines.append(f"👉 **預估總計：約 {total_price}**{fee_str}")
+        elif notes:
+            lines.append(f"👉 **備註**：{notes}")
 
     return lines
 

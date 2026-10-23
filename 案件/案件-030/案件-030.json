@@ -12,7 +12,7 @@
   },
   "status": "resolved",
   "resolved": true,
-  "discord_notified": false,
+  "discord_notified": true,
   "images": [
     "案件-030-Discord照片.jpg"
   ],

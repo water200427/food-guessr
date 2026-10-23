@@ -19,6 +19,42 @@ class CaseManager:
         self.project_root = os.path.dirname(self.cases_dir)
         self.template_path = os.path.join(self.project_root, "案件模板.md")
         os.makedirs(self.cases_dir, exist_ok=True)
+        self.notified_cases_file = os.path.join(self.project_root, "scratch", "notified_cases.json")
+        self.notified_case_ids = self._load_notified_case_ids()
+
+    def _load_notified_case_ids(self) -> set:
+        """
+        載入已成功向 Discord 發送結案通知的案件 ID，杜絕外部覆寫導致重複發送
+        """
+        notified = set()
+        if os.path.exists(self.notified_cases_file):
+            try:
+                with open(self.notified_cases_file, "r", encoding="utf-8") as f:
+                    loaded = json.load(f)
+                    if isinstance(loaded, list):
+                        notified.update(str(x) for x in loaded)
+            except Exception:
+                pass
+        for fpath in self._get_case_json_paths():
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if data.get("discord_notified") is True:
+                    cid = data.get("case_id")
+                    if cid:
+                        notified.add(str(cid))
+            except Exception:
+                pass
+        return notified
+
+    def _save_notified_case_ids(self):
+        """持久化保存已通知案件 ID"""
+        try:
+            os.makedirs(os.path.dirname(self.notified_cases_file), exist_ok=True)
+            with open(self.notified_cases_file, "w", encoding="utf-8") as f:
+                json.dump(sorted(list(self.notified_case_ids)), f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
 
     def compute_file_hash(self, file_path: str) -> Optional[str]:
         """計算檔案的 SHA-256 哈希值供特徵去重比對"""
@@ -338,13 +374,17 @@ class CaseManager:
 
     def get_resolved_unnotified_cases(self) -> List[Dict[str, Any]]:
         """
-        取得已結案但尚未回報至 Discord 的案件
+        取得已結案但尚未回報至 Discord 的案件（具備記憶體與持久化去重，徹底防止二次發送）
         """
         resolved_cases = []
         for fpath in self._get_case_json_paths():
             try:
                 with open(fpath, "r", encoding="utf-8") as f:
                     data = json.load(f)
+                case_id = str(data.get("case_id", ""))
+                # 若該案件已被記錄為已通知，絕不重複回傳
+                if case_id and case_id in self.notified_case_ids:
+                    continue
                 if data.get("source") == "discord" and data.get("resolved") and not data.get("discord_notified", False):
                     resolved_cases.append((fpath, data))
             except Exception:
@@ -353,6 +393,10 @@ class CaseManager:
 
     def mark_case_notified(self, json_path: str, data: Dict[str, Any]):
         data["discord_notified"] = True
+        case_id = str(data.get("case_id", ""))
+        if case_id:
+            self.notified_case_ids.add(case_id)
+            self._save_notified_case_ids()
         try:
             with open(json_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
