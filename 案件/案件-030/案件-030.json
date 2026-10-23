@@ -1,6 +1,6 @@
 {
   "case_id": "030",
-  "case_title": "Discord 上傳照片辨識",
+  "case_title": "Discord 上傳照片辨識 - 福岡久留米 想連 手作り餃子",
   "source": "discord",
   "discord_meta": {
     "guild_id": 738757200780066839,
@@ -19,34 +19,50 @@
   "leading_candidate": {
     "name": "想連 手作り餃子",
     "google_maps_url": "https://maps.app.goo.gl/c2X2ArA3UVvCiuF8A",
-    "confidence": "high",
-    "address": "1-3 Torimachi, Kurume, Fukuoka 830-0018日本",
-    "phone": "+81 80-2034-5078"
+    "maps_url": "https://maps.app.goo.gl/c2X2ArA3UVvCiuF8A",
+    "address": "1-3 Torimachi, Kurume, Fukuoka 830-0018 日本 (福岡縣久留米市通町1-3)",
+    "confidence": "極高",
+    "dish": "ランチ 餃子定食（7ヶ）（手作煎餃 7 顆、白飯、湯品、金平牛蒡小菜、特製柚子味噌醬）",
+    "is_open": true,
+    "is_restaurant": true,
+    "is_retail": false,
+    "is_homemade": false
   },
   "price_estimation": {
     "currency": "JPY",
-    "total_estimated": 800,
-    "service_fee_note": "含稅免收服務費",
+    "menu_date": "2026",
+    "menu_source": "Google Maps 2026 年最新店家官方價目表照片",
     "items": [
       {
-        "name": "餃子定食（7ヶ）",
+        "name": "ランチ 餃子定食（7ヶ）",
+        "spec": "午間定食 1 套（含手作煎餃 7 顆、白飯、湯品、小缽牛蒡小菜、特製柚子味噌醬）",
         "quantity": 1,
         "unit_price": 800,
         "subtotal": 800,
-        "note": "含燒餃子 7 顆、白飯、湯、小缽小菜、自家製味噌醬"
+        "notes": "午間 11:30～14:30 限定定食，菜單清晰標示 800円(税込み)"
       }
-    ]
+    ],
+    "service_fee_percent": 0,
+    "total_price": 800,
+    "additional_fees_note": "日本內用價格已內含消費稅（10%），免收服務費，無強制低消限制"
   },
   "guesses": [
     {
       "name": "想連 手作り餃子",
       "google_maps_url": "https://maps.app.goo.gl/c2X2ArA3UVvCiuF8A",
-      "confidence": "high"
+      "address": "福岡縣久留米市通町1-3",
+      "status": "營業中",
+      "match_points": [
+        "餃子盤為白色長橢圓淺盤，盤緣飾有青藍色幾何雷紋迴紋，與店家 2026 年實拍照片 100% 吻合",
+        "右下角醬料碟為白色片口陶皿，底部繪有專屬趴臥兔子線條圖案，與店家照片完全一致",
+        "左下角沾醬為店家招牌特色「柚子風味味噌ダレ」（柚子味噌醬汁）",
+        "黑底金褐漸層飯碗、黑底木紋湯碗、淡青釉花口小菜缽盛裝金平牛蒡，與午間定食組合完全吻合",
+        "淺色原木紋理托盤與厚實原木桌面環境完全一致",
+        "午間餃子定食為 7 顆煎餃（1人前7ヶ），售價 800 円"
+      ],
+      "contradictions": [],
+      "verdict": "唯一確認店家"
     }
   ],
-  "exclusions": [
-    "餃子とどて煮 うさぎ屋",
-    "肉汁餃子のダンダダン",
-    "ぎょうざ処 亮昌 本店"
-  ]
+  "exclusions": []
 }
