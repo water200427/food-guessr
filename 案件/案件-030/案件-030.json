@@ -1,0 +1,52 @@
+{
+  "case_id": "030",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "guild_id": 738757200780066839,
+    "channel_id": 852925615799009321,
+    "message_id": 1563051431781597266,
+    "jump_url": "https://discord.com/channels/738757200780066839/852925615799009321/1563051431781597266",
+    "author": "water200427",
+    "created_at": 1792730904.4333098
+  },
+  "status": "resolved",
+  "resolved": true,
+  "discord_notified": false,
+  "images": [
+    "案件-030-Discord照片.jpg"
+  ],
+  "leading_candidate": {
+    "name": "想連 手作り餃子",
+    "google_maps_url": "https://maps.app.goo.gl/c2X2ArA3UVvCiuF8A",
+    "confidence": "high",
+    "address": "1-3 Torimachi, Kurume, Fukuoka 830-0018日本",
+    "phone": "+81 80-2034-5078"
+  },
+  "price_estimation": {
+    "currency": "JPY",
+    "total_estimated": 800,
+    "service_fee_note": "含稅免收服務費",
+    "items": [
+      {
+        "name": "餃子定食（7ヶ）",
+        "quantity": 1,
+        "unit_price": 800,
+        "subtotal": 800,
+        "note": "含燒餃子 7 顆、白飯、湯、小缽小菜、自家製味噌醬"
+      }
+    ]
+  },
+  "guesses": [
+    {
+      "name": "想連 手作り餃子",
+      "google_maps_url": "https://maps.app.goo.gl/c2X2ArA3UVvCiuF8A",
+      "confidence": "high"
+    }
+  ],
+  "exclusions": [
+    "餃子とどて煮 うさぎ屋",
+    "肉汁餃子のダンダダン",
+    "ぎょうざ処 亮昌 本店"
+  ]
+}
