@@ -9,6 +9,7 @@ import builtins
 import shutil
 import re
 import urllib.parse
+import time
 from datetime import datetime
 
 # 單一實例保證（防止多重開機或重複回覆）
@@ -286,8 +287,6 @@ def extract_maps_url(lead_dict: dict) -> str:
     """
     if not lead_dict:
         return ""
-    import re
-    import urllib.parse
 
     # 0. 若經研判確認為個人自煮料理或非實體餐廳/超商外帶，絕對不產生特定 Google 地點連結
     if is_homemade_meal(lead_dict) or lead_dict.get("is_restaurant") is False:
@@ -427,7 +426,6 @@ async def watch_case_resolutions():
     1. 執行 30 分鐘停損檢查 (超時自動標記為尚無法確認)
     2. 當 Antigravity 獨立新對話破案並結案時，精確比對群友是否搶先答對，並回傳 Discord！
     """
-    import time
     await client.wait_until_ready()
     while not client.is_closed():
         try:
@@ -608,7 +606,6 @@ def get_sanitized_logs(max_lines: int = 15) -> str:
         content = content.replace(project_root.replace("\\", "/"), ".")
 
         # 隱私脫敏：替換使用者本機目錄 (如 C:\Users\water\...)
-        import re
         content = re.sub(r"[a-zA-Z]:[/\\][Uu]sers[/\\][^\s/\\\"']+", "~", content)
 
         # 控制長度不超過 Discord 2000 字元上限
@@ -652,7 +649,6 @@ async def stream_logs_to_channel():
                         project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
                         sanitized = new_content.replace(project_root, ".")
                         sanitized = sanitized.replace(project_root.replace("\\", "/"), ".")
-                        import re
                         sanitized = re.sub(r"[a-zA-Z]:[/\\][Uu]sers[/\\][^\s/\\\"']+", "~", sanitized)
 
                         # 切割成每段最多 1750 字元
@@ -1045,7 +1041,6 @@ async def on_message(message: discord.Message):
             # 情境 B: 解析參數進行智慧查詢 (空字串 ➜ 最新一案；關鍵字 ➜ 編號、店名、品項模糊比對)
             raw_query = ""
             if not target_case:
-                import re
                 raw_query = re.sub(r"^(!report|!rep|<@!?\d+>\s*report)\s*", "", message.content.strip(), flags=re.IGNORECASE).strip()
                 target_case = case_manager.find_case_by_query(raw_query)
 
@@ -1109,7 +1104,6 @@ async def on_message(message: discord.Message):
                 return
 
             # 情境 B: 顯示最新幾行日誌 (預設 15 行，支援 !log 20、!log 30)
-            import re
             lines_count = 15
             match = re.search(r"log\w*\s+(\d+)", clean_content)
             if match:
