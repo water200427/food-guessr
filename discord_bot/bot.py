@@ -336,12 +336,8 @@ def extract_maps_url(lead_dict: dict) -> str:
 
 def format_price_estimation(case_data: dict) -> list:
     """
-    從案件資料中提取並排版餐點品項與總價估算
-    選配開關受 config.enable_price_estimation 控制（預設為開）
+    從案件資料中提取並排版餐點品項與總價估算（固定開啟）
     """
-    if not getattr(config, "enable_price_estimation", True):
-        return []
-
     lines = []
     lead = case_data.get("leading_candidate", {}) or {}
 
@@ -351,6 +347,9 @@ def format_price_estimation(case_data: dict) -> list:
 
     items = pe.get("items") or []
     total_price = pe.get("total_price")
+    if total_price is None:
+        total_price = pe.get("total_estimated_price")
+
     currency = pe.get("currency", "NT$")
     if currency == "TWD":
         currency = "NT$"
@@ -358,7 +357,7 @@ def format_price_estimation(case_data: dict) -> list:
         currency = "¥"
 
     menu_date = pe.get("menu_date", "")
-    notes = pe.get("notes") or pe.get("additional_fees_note", "")
+    notes = pe.get("notes") or pe.get("additional_fees_note") or pe.get("service_fee", "")
 
     # 向下相容：若根層級沒有 items，但 leading_candidate 內有 dish 或 estimated_total
     lead_dish = lead.get("dish") if isinstance(lead, dict) else None
@@ -389,7 +388,7 @@ def format_price_estimation(case_data: dict) -> list:
         name = item.get("name", "餐點")
         spec = (item.get("spec") or item.get("specification") or "").strip()
         qty = item.get("quantity", 1)
-        unit_price = item.get("unit_price")
+        unit_price = item.get("unit_price") if item.get("unit_price") is not None else item.get("price")
         subtotal = item.get("subtotal")
 
         # 極簡清爽排版：規格僅在簡短（<= 8 字，如大碗/190g）且未重複於品項名時顯示；長篇描述留於 !report 報告
@@ -418,6 +417,41 @@ def format_price_estimation(case_data: dict) -> list:
             lines.append(f"👉 **備註**：{notes}")
 
     return lines
+
+
+def build_price_reply(case_data: dict, is_deferred: bool = False) -> str:
+    """
+    組合 !price 指令或結案延遲回報時的完整價格訊息
+    """
+    cid = case_data.get("case_id", "未知")
+    lead = case_data.get("leading_candidate", {}) or {}
+    if isinstance(lead, str):
+        lead = {"name": lead}
+    c_name = lead.get("name") or case_data.get("case_title") or f"案件-{cid}"
+
+    lines = []
+    if is_deferred:
+        lines.append(f"💰 **【案件-{cid} 價錢出爐囉！】**")
+    else:
+        lines.append(f"💰 **【案件-{cid} 菜單價格資訊】**")
+
+    # 判斷手作料理
+    if is_homemade_meal(lead):
+        lines.append(f"🏠 **類型**：**{c_name}**")
+        lines.append("🍳 **餐點資訊**：自家用心烹飪，愛心無價 ❤️")
+        return "\n".join(lines)
+
+    if c_name and c_name != f"案件-{cid}":
+        lines.append(f"🏠 **店名**：**{c_name}**")
+
+    price_lines = format_price_estimation(case_data)
+    if price_lines:
+        lines.extend(price_lines)
+    else:
+        lines.append("⚠️ 此案件報告中尚未登錄具體菜單品項與預估價格。")
+
+    lines.append(f"*(輸入 `!report {cid}` 可調出完整調查報告)*")
+    return "\n".join(lines)
 
 
 async def watch_case_resolutions():
@@ -581,6 +615,35 @@ async def watch_case_resolutions():
                                         print(f"[貓貓偵探 ⚠️] 日誌頻道發送結案通報失敗: {le}")
                         except Exception as e:
                             print(f"[貓貓偵探 ❌] 案件回報 Discord 失敗: {e}")
+
+                # 處理因輸入 !price 而登記等待價格通知的請求（非同步出爐自動回報）
+                try:
+                    pending_reqs = case_manager.pop_pending_price_requests(case_id)
+                    for req in pending_reqs:
+                        r_ch_id = req.get("channel_id")
+                        r_msg_id = req.get("message_id")
+                        if r_ch_id and r_msg_id:
+                            try:
+                                r_ch = client.get_channel(r_ch_id) or await client.fetch_channel(r_ch_id)
+                                if r_ch:
+                                    r_msg = await r_ch.fetch_message(r_msg_id)
+                                    if r_msg:
+                                        if status == "unconfirmed" or case_data.get("timeout_cutoff"):
+                                            timeout_notice = (
+                                                f"🐾 **【案件-{case_id} 調查進度回報】**\n"
+                                                f"您登記查詢價格的案件因微型特徵排查已達 30 分鐘停損時限（尚無法確認），尚無法取得特定店家菜單價位。\n"
+                                                f"💡 若有額外拍攝地點或照片角度線索，歡迎隨時補充！🐾"
+                                            )
+                                            await r_msg.reply(timeout_notice, mention_author=False)
+                                        else:
+                                            price_text = build_price_reply(case_data, is_deferred=True)
+                                            await r_msg.reply(price_text, mention_author=False)
+                                        print(f"[貓貓偵探 💰] 已成功向訊息 {r_msg_id} 延遲回報案件-{case_id} 價格資訊！")
+                            except Exception as pre:
+                                print(f"[貓貓偵探 ⚠️] 回覆 pending price request 失敗 (msg {r_msg_id}): {pre}")
+                except Exception as pe_err:
+                    print(f"[貓貓偵探 ⚠️] 處理 pending_price_requests 發生異常: {pe_err}")
+
                 case_manager.mark_case_notified(json_path, case_data)
         except Exception as e:
             print(f"[貓貓偵探 ⚠️] 監聽案件結案異常: {e}")
@@ -754,14 +817,18 @@ async def on_message(message: discord.Message):
     if message.author.bot:
         return
 
-    is_mentioned = client.user in message.mentions
-    if not is_mentioned and message.guild:
-        bot_member = message.guild.get_member(client.user.id)
-        if bot_member:
-            bot_role_ids = {r.id for r in bot_member.roles}
-            if any(r.id in bot_role_ids for r in message.role_mentions):
-                is_mentioned = True
-    if not is_mentioned and ("這哪家" in message.content or str(client.user.id) in message.content):
+    is_mentioned = False
+    if client.user:
+        is_mentioned = client.user in message.mentions
+        if not is_mentioned and message.guild:
+            bot_member = message.guild.get_member(client.user.id)
+            if bot_member:
+                bot_role_ids = {r.id for r in bot_member.roles}
+                if any(r.id in bot_role_ids for r in message.role_mentions):
+                    is_mentioned = True
+        if not is_mentioned and ("這哪家" in message.content or str(client.user.id) in message.content):
+            is_mentioned = True
+    elif "這哪家" in (message.content or ""):
         is_mentioned = True
 
     # 提取乾淨的使用者文字提示 (去除 mention 與機器人呼喚詞)
@@ -990,24 +1057,86 @@ async def on_message(message: discord.Message):
     if message.content:
         clean_content = message.content.strip().lower()
 
-        # 0. 菜單價格試算選配開關指令 (!price, !price on/off 或 @這哪家 price)
+        # 0. 查詢菜單價格指令 (!price, !price 034 或 @這哪家 price 034)
         if clean_content.startswith("!price") or (is_mentioned and "price" in clean_content):
-            parts = clean_content.split()
-            arg = parts[1] if len(parts) > 1 else ""
-            if arg in ("on", "true", "enable", "開"):
-                config.enable_price_estimation = True
-                config.save()
-                await message.reply("✅ **已開啟【參考最新菜單顯示品項並計算總價格】功能！**\n後續結案將會自動核對最新菜單並試算消費金額。🐾", mention_author=False)
-            elif arg in ("off", "false", "disable", "關"):
-                config.enable_price_estimation = False
-                config.save()
-                await message.reply("🛑 **已關閉【參考最新菜單顯示品項並計算總價格】功能！**\n後續結案將只顯示店名與地點連結。🐾", mention_author=False)
+            target_case = None
+
+            # 情境 A: 使用者引用了一則特定的歷史訊息
+            if message.reference and message.reference.message_id:
+                ref_msg_id = message.reference.message_id
+                ref_content = ""
+                ref_ref_id = None
+                try:
+                    ref_msg = message.reference.cached_message or await message.channel.fetch_message(ref_msg_id)
+                    if ref_msg:
+                        ref_content = ref_msg.content or ""
+                        if ref_msg.reference and ref_msg.reference.message_id:
+                            ref_ref_id = ref_msg.reference.message_id
+                except Exception:
+                    pass
+                target_case = case_manager.find_case_by_reply(ref_msg_id, ref_content, ref_ref_id)
+
+            # 情境 B: 解析參數進行智慧查詢 (空字串 ➜ 最新一案；關鍵字 ➜ 編號、店名等模糊比對；涵蓋調查中案件)
+            raw_query = ""
+            if not target_case:
+                raw_query = re.sub(r"^(!price|<@!?\d+>\s*price)\s*", "", message.content.strip(), flags=re.IGNORECASE).strip()
+                target_case = case_manager.find_case_by_query(raw_query, allow_investigating=True)
+
+            if target_case:
+                cid = target_case.get("case_id", "未知")
+                is_resolved = target_case.get("resolved", False)
+                status = target_case.get("status", "")
+
+                # 若案件仍在調查中 (還在找)
+                if status == "investigating" and not is_resolved:
+                    case_manager.add_pending_price_request(
+                        case_id=cid,
+                        channel_id=message.channel.id,
+                        message_id=message.id,
+                        user_id=message.author.id
+                    )
+                    temp_reply = (
+                        f"🔍 **【案件-{cid}】** 貓貓偵探仍在全力偵辦中！🐾\n"
+                        f"已為您登記價格通知，待確認店家並查明最新菜單價錢後，會立即在此為您回報！"
+                    )
+                    await message.reply(temp_reply, mention_author=False)
+                    return
+
+                # 若案件已因線索不足停損
+                elif status == "unconfirmed" or target_case.get("timeout_cutoff"):
+                    unconf_reply = (
+                        f"🐾 **【案件-{cid}】** 此案因微型特徵排查已達 30 分鐘停損時限（尚無法確認），無從核對特定店家菜單價格。\n"
+                        f"💡 若有額外拍攝地點或照片角度線索，歡迎隨時補充！"
+                    )
+                    await message.reply(unconf_reply, mention_author=False)
+                    return
+
+                # 正常結案案件：立即回覆價錢
+                else:
+                    reply_text = build_price_reply(target_case)
+                    await message.reply(reply_text, mention_author=False)
+                    return
             else:
-                config.enable_price_estimation = not config.enable_price_estimation
-                config.save()
-                st_str = "開啟 ✅" if config.enable_price_estimation else "關閉 🛑"
-                await message.reply(f"💰 目前菜單價格試算功能狀態為：**{st_str}**\n*(可輸入 `!price on` 或 `!price off` 明確設定)*", mention_author=False)
-            return
+                # 查無結果，比照 !report 友善提示最近結案清單
+                recent = case_manager.get_recent_resolved_cases(limit=3)
+                suggestions = []
+                for rc in recent:
+                    rc_id = rc.get("case_id")
+                    rc_lead = rc.get("leading_candidate", {}) or {}
+                    if isinstance(rc_lead, str):
+                        rc_lead = {"name": rc_lead}
+                    rc_name = rc_lead.get("name") or f"案件-{rc_id}"
+                    short_name = rc_name[:25] + "..." if len(rc_name) > 25 else rc_name
+                    suggestions.append(f"• 案件-{rc_id}: **{short_name}** (可輸入 `!price {rc_id}`)")
+
+                sugg_text = "\n".join(suggestions)
+                not_found_msg = (
+                    f"⚠️ 找不到與「{raw_query}」相關的案件價格資訊！\n\n"
+                    f"💡 **最近可查詢價格的案件有**：\n{sugg_text}\n\n"
+                    f"*(直接輸入 `!price` 可調出最新一案價格)*"
+                )
+                await message.reply(not_found_msg, mention_author=False)
+                return
 
         # 1. 設定專屬日誌轉播頻道 (!setlogchannel, !bindlog 或 @這哪家 setlog)
         if clean_content.startswith("!setlogchannel") or clean_content.startswith("!bindlog") or (is_mentioned and "setlog" in clean_content):

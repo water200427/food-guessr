@@ -21,6 +21,11 @@ class CaseManager:
         os.makedirs(self.cases_dir, exist_ok=True)
         self.notified_cases_file = os.path.join(self.project_root, "scratch", "notified_cases.json")
         self.notified_case_ids = self._load_notified_case_ids()
+        self.pending_price_requests_file = os.path.join(
+            os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
+            "data",
+            "pending_price_requests.json"
+        )
 
     def _load_notified_case_ids(self) -> set:
         """
@@ -668,6 +673,95 @@ class CaseManager:
             print(f"[CaseManager ⚠️] 自動執行 git commit & push 失敗: {e}")
             return False
 
+    # --- Pending Price Requests (待通知價格請求) 管理 ---
+
+    def _load_pending_price_requests(self) -> List[Dict[str, Any]]:
+        """載入所有等待價格通知的請求紀錄"""
+        if os.path.exists(self.pending_price_requests_file):
+            try:
+                with open(self.pending_price_requests_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    if isinstance(data, list):
+                        return data
+            except Exception:
+                pass
+        return []
+
+    def _save_pending_price_requests(self, requests: List[Dict[str, Any]]):
+        """持久化保存所有等待價格通知的請求紀錄"""
+        try:
+            os.makedirs(os.path.dirname(self.pending_price_requests_file), exist_ok=True)
+            with open(self.pending_price_requests_file, "w", encoding="utf-8") as f:
+                json.dump(requests, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"[CaseManager ⚠️] 儲存 pending_price_requests 失敗: {e}")
+
+    def add_pending_price_request(self, case_id: str, channel_id: int, message_id: int, user_id: int) -> bool:
+        """
+        登記等待價格通知的訊息。
+        若該 message_id 已經登記過則返回 False，成功登記返回 True。
+        """
+        cid = f"{int(case_id):03d}" if str(case_id).isdigit() else str(case_id)
+        requests = self._load_pending_price_requests()
+        for r in requests:
+            if r.get("message_id") == message_id:
+                return False
+        requests.append({
+            "case_id": cid,
+            "channel_id": channel_id,
+            "message_id": message_id,
+            "user_id": user_id,
+            "created_at": time.time()
+        })
+        self._save_pending_price_requests(requests)
+        return True
+
+    def get_pending_price_requests(self, case_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """取得待通知的價格請求清單（可指定特定案件編號）"""
+        requests = self._load_pending_price_requests()
+        if case_id is None:
+            return requests
+        cid = f"{int(case_id):03d}" if str(case_id).isdigit() else str(case_id)
+        return [r for r in requests if r.get("case_id") == cid]
+
+    def pop_pending_price_requests(self, case_id: str) -> List[Dict[str, Any]]:
+        """
+        取出並從待通知清單中移除特定案件的所有價格請求
+        """
+        cid = f"{int(case_id):03d}" if str(case_id).isdigit() else str(case_id)
+        requests = self._load_pending_price_requests()
+        matched = []
+        remaining = []
+        for r in requests:
+            if r.get("case_id") == cid:
+                matched.append(r)
+            else:
+                remaining.append(r)
+        if matched:
+            self._save_pending_price_requests(remaining)
+        return matched
+
+    def get_all_cases(self) -> List[Dict[str, Any]]:
+        """
+        取得所有案件清單（不論是否結案），依案件編號升序排序
+        """
+        cases = []
+        for fpath in self._get_case_json_paths():
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                data["_json_path"] = fpath
+                cases.append(data)
+            except Exception:
+                pass
+        cases.sort(key=lambda x: str(x.get("case_id", "000")))
+        return cases
+
+    def get_latest_case(self) -> Optional[Dict[str, Any]]:
+        """取得系統中最新建立的案件（依 case_id 排序最後一個）"""
+        cases = self.get_all_cases()
+        return cases[-1] if cases else None
+
     def get_all_resolved_cases(self) -> List[Dict[str, Any]]:
         """
         取得所有已結案案件清單，依案件編號升序排序
@@ -692,20 +786,21 @@ class CaseManager:
         resolved = self.get_all_resolved_cases()
         return list(reversed(resolved))[:limit]
 
-    def find_case_by_query(self, query: str = "") -> Optional[Dict[str, Any]]:
+    def find_case_by_query(self, query: str = "", allow_investigating: bool = False) -> Optional[Dict[str, Any]]:
         """
-        智慧模糊查詢已結案案件：
-        1. 空字串 ➜ 回傳最新結案案件
-        2. 數字或案件編號 ➜ 精確比對案件編號 (如 23, 023, 案件-023)
-        3. 關鍵字 ➜ 依序搜尋店名、料理、判定依據與 Markdown 報告內文 (回傳最新匹配者)
+        智慧模糊查詢案件：
+        :param query: 查詢字串
+        :param allow_investigating: 是否涵蓋調查中（未結案）的案件。
+               - False: 預設模式（!report 用），僅在已結案案件中搜尋。
+               - True: 模式（!price 用），在所有案件（調查中與已結案）中搜尋，無參數時回傳最新一案。
         """
-        resolved = self.get_all_resolved_cases()
-        if not resolved:
+        cases_pool = self.get_all_cases() if allow_investigating else self.get_all_resolved_cases()
+        if not cases_pool:
             return None
 
-        # 情境 1: 無參數，回傳最新結案
+        # 情境 1: 無參數，回傳最新案件
         if not query or not query.strip():
-            return resolved[-1]
+            return cases_pool[-1]
 
         q = query.strip().lower()
 
@@ -713,12 +808,13 @@ class CaseManager:
         m = re.search(r"(\d+)", q)
         if m:
             target_id = f"{int(m.group(1)):03d}"
-            for c in reversed(resolved):
-                if c.get("case_id") == target_id:
-                    return c
+            case_by_id = self.find_case_by_id(target_id)
+            if case_by_id:
+                if allow_investigating or case_by_id.get("resolved"):
+                    return case_by_id
 
         # 情境 3: 店名、料理、判定理由關鍵字比對
-        for c in reversed(resolved):
+        for c in reversed(cases_pool):
             lead = c.get("leading_candidate", {}) or {}
             if isinstance(lead, str):
                 lead = {"name": lead}
@@ -731,7 +827,7 @@ class CaseManager:
                 return c
 
         # 情境 4: Markdown 報告全文搜尋比對
-        for c in reversed(resolved):
+        for c in reversed(cases_pool):
             json_path = c.get("_json_path")
             case_id = c.get("case_id")
             md_path = self.get_case_md_path(case_id, json_path)

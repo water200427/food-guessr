@@ -1,5 +1,7 @@
 import os
 import sys
+import json
+import shutil
 import asyncio
 import unittest
 
@@ -191,10 +193,10 @@ class TestDiscordBotLogic(unittest.IsolatedAsyncioTestCase):
         finally:
             config.enable_price_estimation = orig
 
-    def test_price_estimation_formatting_disabled(self):
-        """測試關閉菜單計價選配時，回傳空列表（不干擾回覆）"""
+    def test_price_estimation_fixed_enabled(self):
+        """測試價錢顯示改為固定開啟（無法透過指令或變數關閉，即使外部屬性變動仍固定輸出價錢）"""
         from bot import format_price_estimation, config
-        orig = config.enable_price_estimation
+        orig = getattr(config, "enable_price_estimation", True)
         try:
             config.enable_price_estimation = False
             case_data = {
@@ -204,7 +206,8 @@ class TestDiscordBotLogic(unittest.IsolatedAsyncioTestCase):
                 }
             }
             lines = format_price_estimation(case_data)
-            self.assertEqual(lines, [], "關閉選配時必須回傳空列表")
+            self.assertTrue(any("牛肉麵" in l for l in lines), "價錢顯示固定開啟，必須正常輸出品項")
+            self.assertTrue(any("180" in l for l in lines), "必須輸出金額")
         finally:
             config.enable_price_estimation = orig
 
@@ -458,6 +461,237 @@ class TestDiscordBotLogic(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(any("布丁" in l for l in lines), "必須包含布丁品項")
         self.assertTrue(any("藍莓優格飲" in l for l in lines), "必須包含藍莓優格飲品項")
         self.assertTrue(any("472" in l for l in lines), "必須包含總金額試算")
+
+    def test_pending_price_requests_management(self):
+        """測試待通知價格請求 (Pending Price Requests) 的新增、查詢、防重複與提取清空 (Pop)"""
+        import tempfile
+        from services.case_manager import CaseManager
+        test_dir = tempfile.mkdtemp()
+        try:
+            cm = CaseManager(cases_dir=test_dir)
+            # 使用獨立的暫存 pending_price_requests 檔案
+            cm.pending_price_requests_file = os.path.join(test_dir, "pending_price_requests.json")
+
+            # 1. 登記請求
+            res1 = cm.add_pending_price_request(case_id="035", channel_id=111, message_id=222, user_id=333)
+            self.assertTrue(res1, "首次登記必須成功")
+
+            # 2. 防重複登記
+            res2 = cm.add_pending_price_request(case_id="035", channel_id=111, message_id=222, user_id=333)
+            self.assertFalse(res2, "重複 message_id 登記必須回傳 False")
+
+            # 3. 登記另一個請求
+            res3 = cm.add_pending_price_request(case_id="035", channel_id=111, message_id=223, user_id=444)
+            self.assertTrue(res3)
+
+            # 4. 登記其他案件
+            cm.add_pending_price_request(case_id="036", channel_id=111, message_id=224, user_id=555)
+
+            # 5. 查詢
+            reqs_035 = cm.get_pending_price_requests("035")
+            self.assertEqual(len(reqs_035), 2)
+            self.assertEqual(len(cm.get_pending_price_requests()), 3)
+
+            # 6. Pop 取出 035 (應移出佇列)
+            popped = cm.pop_pending_price_requests("035")
+            self.assertEqual(len(popped), 2)
+            # 檢查 035 是否已清空，036 依然存在
+            self.assertEqual(len(cm.get_pending_price_requests("035")), 0)
+            self.assertEqual(len(cm.get_pending_price_requests("036")), 1)
+        finally:
+            shutil.rmtree(test_dir, ignore_errors=True)
+
+    def test_find_case_by_query_with_investigating(self):
+        """測試 find_case_by_query 支援 allow_investigating=True，涵蓋調查中與已結案案件"""
+        import tempfile
+        import json
+        from services.case_manager import CaseManager
+        test_dir = tempfile.mkdtemp()
+        try:
+            cm = CaseManager(cases_dir=test_dir)
+            # 建立已結案 001
+            c1_dir = os.path.join(test_dir, "案件-001")
+            os.makedirs(c1_dir, exist_ok=True)
+            with open(os.path.join(c1_dir, "案件-001.json"), "w", encoding="utf-8") as f:
+                json.dump({
+                    "case_id": "001",
+                    "status": "resolved",
+                    "resolved": True,
+                    "leading_candidate": {"name": "老張牛肉麵"}
+                }, f)
+
+            # 建立調查中 002
+            c2_dir = os.path.join(test_dir, "案件-002")
+            os.makedirs(c2_dir, exist_ok=True)
+            with open(os.path.join(c2_dir, "案件-002.json"), "w", encoding="utf-8") as f:
+                json.dump({
+                    "case_id": "002",
+                    "status": "investigating",
+                    "resolved": False,
+                    "leading_candidate": {}
+                }, f)
+
+            # 當 allow_investigating=False (預設 !report 邏輯)：查不到 002，無參數時回傳 001
+            res_report = cm.find_case_by_query("", allow_investigating=False)
+            self.assertEqual(res_report.get("case_id"), "001")
+            self.assertIsNone(cm.find_case_by_query("002", allow_investigating=False))
+
+            # 當 allow_investigating=True (!price 邏輯)：無參數時回傳最新的 002
+            res_price_latest = cm.find_case_by_query("", allow_investigating=True)
+            self.assertEqual(res_price_latest.get("case_id"), "002")
+
+            # 指定編號查 002 (調查中) 也能成功找到
+            res_price_002 = cm.find_case_by_query("002", allow_investigating=True)
+            self.assertEqual(res_price_002.get("case_id"), "002")
+
+            # 指定編號查 001 (已結案) 也正常
+            res_price_001 = cm.find_case_by_query("001", allow_investigating=True)
+            self.assertEqual(res_price_001.get("case_id"), "001")
+        finally:
+            shutil.rmtree(test_dir, ignore_errors=True)
+
+    def test_build_price_reply(self):
+        """測試 build_price_reply 對各種案件型態之訊息排版格式"""
+        from bot import build_price_reply
+
+        # 案例 A: 正常已結案餐廳
+        case_resolved = {
+            "case_id": "034",
+            "leading_candidate": {"name": "勝烈亭 新市街本店"},
+            "price_estimation": {
+                "currency": "JPY",
+                "items": [{"name": "海老とひれかつ膳", "price": 2420}],
+                "total_estimated_price": 2420
+            }
+        }
+        res_a = build_price_reply(case_resolved, is_deferred=False)
+        self.assertIn("💰 **【案件-034 菜單價格資訊】**", res_a)
+        self.assertIn("勝烈亭 新市街本店", res_a)
+        self.assertIn("2420", res_a)
+        self.assertIn("!report 034", res_a)
+
+        # 案例 B: 非同步延遲回報出爐 (is_deferred=True)
+        res_b = build_price_reply(case_resolved, is_deferred=True)
+        self.assertIn("💰 **【案件-034 價錢出爐囉！】**", res_b)
+
+        # 案例 C: 自煮手作料理
+        case_home = {
+            "case_id": "025",
+            "leading_candidate": {"name": "自己煮的家常牛肉麵", "is_homemade": True}
+        }
+        res_c = build_price_reply(case_home)
+        self.assertIn("自家用心烹飪，愛心無價 ❤️", res_c)
+
+    async def test_price_command_end_to_end_flow(self):
+        """測試 !price 指令端到端非同步流程：包含已結案即時回傳、調查中先登記暫時回覆、查無案件推薦"""
+        import bot
+        from bot import client
+
+        class MockAuthor:
+            def __init__(self, uid=888, is_bot=False):
+                self.id = uid
+                self.bot = is_bot
+                self.mention = f"<@{uid}>"
+
+        class MockChannel:
+            def __init__(self, cid=777):
+                self.id = cid
+                self.name = "test-channel"
+                self.sent_messages = []
+
+            async def send(self, content=None, file=None):
+                self.sent_messages.append(content)
+
+        class MockDiscordMessage:
+            def __init__(self, content, msg_id=999, author=None, channel=None):
+                self.id = msg_id
+                self.content = content
+                self.author = author or MockAuthor()
+                self.channel = channel or MockChannel()
+                self.reference = None
+                self.guild = None
+                self.mentions = []
+                self.attachments = []
+                self.replies = []
+
+            async def reply(self, content, mention_author=False, file=None):
+                self.replies.append(content)
+
+        # 1. 測試指定已結案之案件 (例如 案件-034 勝烈亭)
+        msg_34 = MockDiscordMessage("!price 034")
+        await client.on_message(msg_34)
+        self.assertEqual(len(msg_34.replies), 1)
+        self.assertIn("勝烈亭", msg_34.replies[0])
+        self.assertIn("2420", msg_34.replies[0])
+
+        # 2. 測試查無案件提示 (例如 99999)
+        msg_none = MockDiscordMessage("!price 99999")
+        await client.on_message(msg_none)
+        self.assertEqual(len(msg_none.replies), 1)
+        self.assertIn("找不到與「99999」相關的案件價格資訊", msg_none.replies[0])
+        self.assertIn("最近可查詢價格的案件有", msg_none.replies[0])
+
+        # 3. 測試調查中案件：先回覆「正在找」並登記，結案時自動回覆價格
+        from bot import case_manager, build_price_reply
+        import tempfile
+        test_dir = tempfile.mkdtemp()
+        orig_cases_dir = case_manager.cases_dir
+        orig_reqs_file = case_manager.pending_price_requests_file
+        try:
+            case_manager.cases_dir = test_dir
+            case_manager.pending_price_requests_file = os.path.join(test_dir, "pending_price_requests.json")
+
+            # 建立調查中 099
+            c_dir = os.path.join(test_dir, "案件-099")
+            os.makedirs(c_dir, exist_ok=True)
+            c_json = os.path.join(c_dir, "案件-099.json")
+            with open(c_json, "w", encoding="utf-8") as f:
+                json.dump({
+                    "case_id": "099",
+                    "status": "investigating",
+                    "resolved": False,
+                    "leading_candidate": {}
+                }, f)
+
+            # 發送 !price 099
+            msg_inv = MockDiscordMessage("!price 099", msg_id=777888)
+            await client.on_message(msg_inv)
+            self.assertEqual(len(msg_inv.replies), 1)
+            self.assertIn("貓貓偵探仍在全力偵辦中", msg_inv.replies[0])
+            self.assertIn("已為您登記價格通知", msg_inv.replies[0])
+
+            # 檢查登記紀錄
+            pending = case_manager.get_pending_price_requests("099")
+            self.assertEqual(len(pending), 1)
+            self.assertEqual(pending[0]["message_id"], 777888)
+
+            # 模擬案件結案
+            with open(c_json, "w", encoding="utf-8") as f:
+                json.dump({
+                    "case_id": "099",
+                    "status": "resolved",
+                    "resolved": True,
+                    "leading_candidate": {"name": "美味拉麵店"},
+                    "price_estimation": {
+                        "currency": "NT$",
+                        "items": [{"name": "豚骨拉麵", "price": 200}],
+                        "total_price": 200
+                    }
+                }, f)
+
+            # 提取待回覆請求並產生回覆
+            popped = case_manager.pop_pending_price_requests("099")
+            self.assertEqual(len(popped), 1)
+            with open(c_json, "r", encoding="utf-8") as f:
+                c_data = json.load(f)
+            deferred_reply = build_price_reply(c_data, is_deferred=True)
+            self.assertIn("💰 **【案件-099 價錢出爐囉！】**", deferred_reply)
+            self.assertIn("美味拉麵店", deferred_reply)
+            self.assertIn("200", deferred_reply)
+        finally:
+            case_manager.cases_dir = orig_cases_dir
+            case_manager.pending_price_requests_file = orig_reqs_file
+            shutil.rmtree(test_dir, ignore_errors=True)
 
 if __name__ == "__main__":
     unittest.main()
