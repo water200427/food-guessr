@@ -1,0 +1,47 @@
+{
+  "case_id": "033",
+  "case_title": "Discord 上傳照片辨識 - 非餐廳（路邊黑白賓士貓／乳牛貓戶外隨手拍）",
+  "source": "discord",
+  "discord_meta": {
+    "guild_id": 738757200780066839,
+    "channel_id": 852925615799009321,
+    "message_id": 1563496839494242385,
+    "jump_url": "https://discord.com/channels/738757200780066839/852925615799009321/1563496839494242385",
+    "author": "coldjoke",
+    "created_at": 1792837095.6947286
+  },
+  "initial_hint": null,
+  "hints": [],
+  "status": "resolved",
+  "resolved": true,
+  "discord_notified": false,
+  "images": [
+    "案件-033-Discord照片.jpg"
+  ],
+  "leading_candidate": {
+    "name": "非餐廳或食物（路邊黑白賓士貓／乳牛貓戶外隨手拍）",
+    "address": "戶外道路／草叢邊（無實體地址）",
+    "maps_url": "",
+    "google_maps_url": "",
+    "confidence": "高",
+    "is_restaurant": false,
+    "dish": "無食物（純動物戶外隨手拍）",
+    "status_current": "非餐飲店家"
+  },
+  "price_estimation": {
+    "total_estimated_twd": 0,
+    "currency": "TWD",
+    "items": [
+      {
+        "item": "可愛黑白賓士貓（乳牛貓）",
+        "spec": "1 隻",
+        "unit_price": 0,
+        "subtotal": 0,
+        "note": "眼神高冷淡定、坐姿端莊，心靈療癒無價 ❤️"
+      }
+    ],
+    "notes": "非餐飲店家，無任何消費金額與低消；路邊吸貓免費，心靈收穫無價！"
+  },
+  "guesses": [],
+  "exclusions": []
+}
