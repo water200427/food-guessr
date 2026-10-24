@@ -1,0 +1,80 @@
+{
+  "case_id": "032",
+  "case_title": "Discord 上傳照片辨識 - 熊本城 桜の馬場 城彩苑「桜の小路」",
+  "source": "discord",
+  "discord_meta": {
+    "guild_id": 738757200780066839,
+    "channel_id": 852925615799009321,
+    "message_id": 1563426744046850200,
+    "jump_url": "https://discord.com/channels/738757200780066839/852925615799009321/1563426744046850200",
+    "author": "water200427",
+    "created_at": 1792820385.7844164
+  },
+  "initial_hint": null,
+  "hints": [],
+  "status": "resolved",
+  "resolved": true,
+  "discord_notified": false,
+  "images": [
+    "案件-032-Discord照片.jpg"
+  ],
+  "leading_candidate": {
+    "name": "桜の馬場 城彩苑「桜の小路」",
+    "google_maps_url": "https://maps.google.com/?cid=3433433690040737207",
+    "maps_url": "https://maps.google.com/?cid=3433433690040737207",
+    "address": "1-1-2 Ninomaru, Chuo Ward, Kumamoto, 860-0008 日本 (熊本縣熊本市中央區二之丸1-1-2)",
+    "confidence": "極高",
+    "dish": "城彩苑 桜の小路 熊本熊等身公仔迎賓拍照地標（街區匯集 20 餘家熊本鄉土料理與名產）",
+    "is_open": true,
+    "is_restaurant": false,
+    "is_retail": true,
+    "is_homemade": false
+  },
+  "price_estimation": {
+    "currency": "JPY",
+    "menu_date": "2026",
+    "menu_source": "桜の馬場 城彩苑 官方設施資訊與現場地標實況",
+    "items": [
+      {
+        "name": "城彩苑「桜の小路」熊本熊雕像迎賓合影",
+        "spec": "1 次",
+        "quantity": 1,
+        "unit_price": 0,
+        "subtotal": 0,
+        "notes": "照片主角，園區公共打卡公仔，自由免費合照"
+      },
+      {
+        "name": "城彩苑園區入園",
+        "spec": "全區自由參觀",
+        "quantity": 1,
+        "unit_price": 0,
+        "subtotal": 0,
+        "notes": "櫻之馬場城彩苑公共街區免門票自由進出"
+      }
+    ],
+    "service_fee_percent": 0,
+    "total_price": 0,
+    "additional_fees_note": "公共拍照打卡景點入園與合照免費（0 円）；櫻之小路內用餐飲與小吃人均約 250～2,500 円不等"
+  },
+  "guesses": [
+    {
+      "name": "桜の馬場 城彩苑「桜の小路」",
+      "google_maps_url": "https://maps.google.com/?cid=3433433690040737207",
+      "address": "熊本縣熊本市中央區二之丸1-1-2",
+      "status": "營業中",
+      "match_points": [
+        "照片右側黑色木造燈籠立牌草書墨寶辨識出『路（こうじ）』，為『桜の小路』入口標誌門牌",
+        "等身大黑底輪動推車台座熊本熊（くまモン）公仔與維基檔案庫（Kumamoto Sakuranokouji Kumamon Figure 1.jpg）完全一致",
+        "左上方樹枝間隙清晰可見之白色立體鋼構桁架，為 2016 熊本地震後熊本城復興工程所設之『特別見學通路（空中步道）』",
+        "地面灰黃石磚鋪面與後方日式竹籬笆瓦簷完全吻合"
+      ],
+      "contradictions": [],
+      "verdict": "唯一確認地點（熊本城下觀光交流美食街區入口迎賓地標）"
+    }
+  ],
+  "exclusions": [
+    "くまモンスクエア（熊本熊廣場）",
+    "くまモンポート八代（熊本熊港八代）",
+    "肥後めしや 夢あかり（已於2020年歇業之歷史店鋪）"
+  ]
+}
