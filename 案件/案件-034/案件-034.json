@@ -1,0 +1,54 @@
+{
+  "case_id": "034",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "guild_id": 738757200780066839,
+    "channel_id": 852925615799009321,
+    "message_id": 1563526573909606414,
+    "jump_url": "https://discord.com/channels/738757200780066839/852925615799009321/1563526573909606414",
+    "author": "water200427",
+    "created_at": 1792844185.0690453
+  },
+  "initial_hint": null,
+  "hints": [],
+  "status": "resolved",
+  "resolved": true,
+  "discord_notified": false,
+  "images": [
+    "案件-034-Discord照片.jpg"
+  ],
+  "leading_candidate": {
+    "name": "勝烈亭 新市街本店",
+    "address": "熊本県熊本市中央区新市街8-18 林ビル 1F",
+    "google_maps_url": "https://maps.app.goo.gl/asjisszZhoVwSaH36",
+    "confidence": "high",
+    "confidence_score": 0.99
+  },
+  "price_estimation": {
+    "total_estimated_price": 2420,
+    "currency": "JPY",
+    "items": [
+      {
+        "name": "海老とひれかつ膳（炸蝦與腰內豬排膳）",
+        "spec": "炸蝦2尾、腰內豬排2塊（附白飯、赤味噌湯、高麗菜絲、研磨白芝麻、蘿蔔泥小缽）",
+        "quantity": 1,
+        "price": 2420
+      }
+    ],
+    "service_fee": "無額外服務費（含稅價，內用白飯、味噌湯、高麗菜絲免費無限續加）"
+  },
+  "guesses": [
+    {
+      "name": "勝烈亭 新市街本店",
+      "google_maps_url": "https://maps.app.goo.gl/asjisszZhoVwSaH36",
+      "status": "confirmed"
+    },
+    {
+      "name": "勝烈亭 AMU PLAZA熊本店",
+      "google_maps_url": "https://maps.app.goo.gl/QGyTowgwP4w8845X7",
+      "status": "alternative_branch"
+    }
+  ],
+  "exclusions": []
+}
