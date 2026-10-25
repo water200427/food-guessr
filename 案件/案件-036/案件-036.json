@@ -12,14 +12,30 @@
   },
   "initial_hint": null,
   "hints": [],
-  "status": "investigating",
-  "resolved": false,
+  "status": "resolved",
+  "resolved": true,
   "discord_notified": false,
   "images": [
     "案件-036-Discord照片.jpg"
   ],
-  "leading_candidate": null,
-  "price_estimation": null,
-  "guesses": [],
-  "exclusions": []
+  "leading_candidate": {
+    "name": "あか牛丼専門店 ごとう屋 阿蘇店",
+    "maps_url": "https://maps.app.goo.gl/xpX2bjDgxXqhg3JB7",
+    "confidence": "high",
+    "address": "熊本県阿蘇市黒川14-3"
+  },
+  "price_estimation": {
+    "total": "2,000 円 (JPY)",
+    "details": "あか牛丼セット（並） 2,000 円（含稅，折合新台幣約 420 元）"
+  },
+  "guesses": [
+    {
+      "name": "あか牛丼専門店 ごとう屋 阿蘇店",
+      "maps_url": "https://maps.app.goo.gl/xpX2bjDgxXqhg3JB7",
+      "confidence": "high"
+    }
+  ],
+  "exclusions": [
+    "いまきん食堂"
+  ]
 }

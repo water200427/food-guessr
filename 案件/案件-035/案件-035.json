@@ -11,9 +11,16 @@
     "created_at": 1792906162.8610055
   },
   "initial_hint": null,
-  "hints": [],
-  "status": "resolved",
-  "resolved": true,
+  "hints": [
+    {
+      "time": 1792907424.5663953,
+      "message_id": 1563791821979783210,
+      "author": "water200427",
+      "text": "這是合浦龍潭民族店才對"
+    }
+  ],
+  "status": "investigating",
+  "resolved": false,
   "discord_notified": false,
   "images": [
     "案件-035-Discord照片.jpg"
