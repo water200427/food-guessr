@@ -19,40 +19,41 @@
       "text": "這是合浦龍潭民族店才對"
     }
   ],
-  "status": "investigating",
-  "resolved": false,
+  "status": "resolved",
+  "resolved": true,
   "discord_notified": false,
   "images": [
     "案件-035-Discord照片.jpg"
   ],
   "leading_candidate": {
-    "name": "鮮道口福牛肉麵（向心直營店）",
-    "maps_url": "https://maps.app.goo.gl/TaToaHZK4pHmbmD69",
+    "name": "合浦刀切麵食工坊 龍潭民族店",
+    "maps_url": "https://maps.app.goo.gl/rpCFcU2oQ62EfmCH6",
     "confidence": "high",
-    "basis": "紅燒牛骨蔬菜高湯佐大塊燉透白蘿蔔（菜頭）與手工大餛飩，搭配標誌性平切緣雙層不鏽鋼隔熱大碗公、同心圓橘紅醬料碟與深色木紋桌面，物證100%相符。"
+    "basis": "紅燒牛肉清甜蔬菜高湯燉煮大塊透軟白蘿蔔（菜頭）與白菜，搭配招牌現包大餛飩（餛飩牛肉湯無肉品項），盛裝於連鎖標誌性平切緣雙層不鏽鋼防燙隔熱大碗公，搭配醬料區橘紅同心圓小碟與深褐色木紋桌，物證100%相符且為使用者明確指定店家。"
   },
   "price_estimation": {
     "currency": "TWD",
-    "estimated_total": 110,
+    "estimated_total": 95,
     "items": [
       {
-        "name": "紅燒牛湯餛飩湯",
+        "name": "餛飩牛肉湯（無肉）",
         "spec": "大碗公裝（約4-5顆手工餛飩、燉白蘿蔔、大白菜、蔥花）",
-        "price": 110,
+        "price": 95,
         "quantity": 1,
-        "subtotal": 110
+        "subtotal": 95
       }
     ],
-    "service_fee_note": "免收服務費，無低消限制"
+    "service_fee_note": "免收服務費，無低消限制（現場內用價約 $90～$95，外送平台標價 $110）"
   },
   "guesses": [
     {
-      "name": "鮮道口福牛肉麵（向心直營店）",
-      "maps_url": "https://maps.app.goo.gl/TaToaHZK4pHmbmD69",
+      "name": "合浦刀切麵食工坊 龍潭民族店",
+      "maps_url": "https://maps.app.goo.gl/rpCFcU2oQ62EfmCH6",
       "confidence": "high"
     }
   ],
   "exclusions": [
+    "鮮道口福牛肉麵（向心直營店）（地理位置在台中南屯，非桃園龍潭，依使用者指定線索排除）",
     "上佳原汁牛肉麵（器皿使用黑色美耐皿大碗且配菜為大陸妹，不符）",
     "元之寶拉麵湯餃館（器皿與裝潢不符）"
   ]
