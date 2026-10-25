@@ -21,7 +21,7 @@
   ],
   "status": "resolved",
   "resolved": true,
-  "discord_notified": false,
+  "discord_notified": true,
   "images": [
     "案件-035-Discord照片.jpg"
   ],

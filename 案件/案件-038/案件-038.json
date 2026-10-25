@@ -1,0 +1,39 @@
+{
+  "case_id": "038",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "guild_id": 738757200780066839,
+    "channel_id": 852925615799009321,
+    "message_id": 1563876221421617333,
+    "jump_url": "https://discord.com/channels/738757200780066839/852925615799009321/1563876221421617333",
+    "author": "coldjoke",
+    "created_at": 1792927550.277823
+  },
+  "initial_hint": "案件037有更多線索了！",
+  "hints": [
+    {
+      "time": 1792927550.2778263,
+      "message_id": 1563876221421617333,
+      "author": "coldjoke",
+      "text": "案件037有更多線索了！"
+    },
+    {
+      "time": 1792927756.2363172,
+      "message_id": 1563877100224647199,
+      "author": "water200427",
+      "text": "感謝捏 剛剛確實因為我沒開agy所以報錯了"
+    }
+  ],
+  "status": "unconfirmed",
+  "resolved": true,
+  "discord_notified": true,
+  "images": [
+    "案件-038-Discord照片.jpg"
+  ],
+  "leading_candidate": null,
+  "price_estimation": null,
+  "guesses": [],
+  "exclusions": [],
+  "timeout_cutoff": true
+}

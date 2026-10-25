@@ -1,0 +1,52 @@
+{
+  "case_id": "037",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "guild_id": 738757200780066839,
+    "channel_id": 852925615799009321,
+    "message_id": 1563872342306848893,
+    "jump_url": "https://discord.com/channels/738757200780066839/852925615799009321/1563872342306848893",
+    "author": "coldjoke",
+    "created_at": 1792926622.9258292
+  },
+  "initial_hint": null,
+  "hints": [
+    {
+      "time": 1792926949.9728386,
+      "message_id": 1563873718437023827,
+      "author": "coldjoke",
+      "text": "你開啟新對話異常，可以嘗試修正嗎？"
+    }
+  ],
+  "status": "resolved",
+  "resolved": true,
+  "discord_notified": false,
+  "images": [
+    "案件-037-Discord照片.jpg",
+    "案件-037-照片2.jpg"
+  ],
+  "leading_candidate": {
+    "name": "好客人家餐館",
+    "map_url": "https://maps.app.goo.gl/jeuAURoNroWqGV2J7",
+    "address": "桃園市龍潭區佳安里十一分路199-1號",
+    "confidence": "高",
+    "phone": "03-471-2202"
+  },
+  "price_estimation": {
+    "total_price": 1500,
+    "currency": "TWD",
+    "details": "超值六菜一湯平價合菜套餐（含招牌糖醋松鼠活魚、鳳梨蝦球、鐵板豆腐、蒜泥白肉佐生洋蔥、蒜炒地瓜葉、養生百菇清湯、招待四季水果盤芭樂、自製香蔥雞油拌飯與白飯無限吃到飽），免收服務費。"
+  },
+  "guesses": [
+    "好客人家餐館",
+    "石園活魚餐廳 (文化分店)",
+    "名佳鄉料理",
+    "滿味平價快炒"
+  ],
+  "exclusions": [
+    "石園活魚餐廳 (文化分店)",
+    "名佳鄉料理",
+    "滿味平價快炒"
+  ]
+}
