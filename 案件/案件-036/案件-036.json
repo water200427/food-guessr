@@ -1,0 +1,25 @@
+{
+  "case_id": "036",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "guild_id": 738757200780066839,
+    "channel_id": 852925615799009321,
+    "message_id": 1563787086207787098,
+    "jump_url": "https://discord.com/channels/738757200780066839/852925615799009321/1563787086207787098",
+    "author": "water200427",
+    "created_at": 1792906296.6123953
+  },
+  "initial_hint": null,
+  "hints": [],
+  "status": "investigating",
+  "resolved": false,
+  "discord_notified": false,
+  "images": [
+    "案件-036-Discord照片.jpg"
+  ],
+  "leading_candidate": null,
+  "price_estimation": null,
+  "guesses": [],
+  "exclusions": []
+}
