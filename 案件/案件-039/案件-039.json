@@ -1,0 +1,59 @@
+{
+  "case_id": "039",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "guild_id": 738757200780066839,
+    "channel_id": 852925615799009321,
+    "message_id": 1564115275157340262,
+    "jump_url": "https://discord.com/channels/738757200780066839/852925615799009321/1564115275157340262",
+    "author": "coldjoke",
+    "created_at": 1792984542.0441952
+  },
+  "initial_hint": null,
+  "hints": [],
+  "status": "resolved",
+  "resolved": true,
+  "discord_notified": false,
+  "images": [
+    "案件-039-Discord照片.jpg"
+  ],
+  "leading_candidate": {
+    "name": "和牛めんたい 神楽（かぐら）- 太宰府天満宮参道",
+    "maps_url": "https://maps.app.goo.gl/bwLpBZ6NX3gND8Ak6",
+    "confidence": "high",
+    "reason": "黑毛和牛壽喜燒肉、ふくや整條明太子與滑蛋重箱，搭配天婦羅三種盛合、三格漬物碟、金箔底托盤、友禪紙碎花筷套及太宰府店特有之平整黑色橫紋桌，微距物證全數精確吻合。"
+  },
+  "price_estimation": {
+    "currency": "JPY",
+    "total": "3,000 円（約 NT$ 630）",
+    "service_fee": "無額外服務費（含 10% 消費稅）",
+    "items": [
+      {
+        "name": "和牛めんたい御膳（並盛）",
+        "qty": "1份",
+        "unit_price": "2,400 円",
+        "subtotal": "2,400 円",
+        "note": "和牛明太子重＋味噌湯＋三色漬物（高菜、福神漬、紫柴漬）"
+      },
+      {
+        "name": "おすすめセット（天婦羅三種盛合組合）",
+        "qty": "1份加價購",
+        "unit_price": "600 円",
+        "subtotal": "600 円",
+        "note": "現炸南瓜天婦羅2片、舞茸/時蔬天婦羅、炸魚片天婦羅＋附餐冰飲一杯"
+      }
+    ]
+  },
+  "guesses": [
+    {
+      "name": "和牛めんたい 神楽（かぐら）- 太宰府天満宮参道",
+      "maps_url": "https://maps.app.goo.gl/bwLpBZ6NX3gND8Ak6",
+      "status": "confirmed"
+    }
+  ],
+  "exclusions": [
+    "和牛すき焼き・しゃぶしゃぶ 神楽 天神店",
+    "元祖博多めんたい重"
+  ]
+}
