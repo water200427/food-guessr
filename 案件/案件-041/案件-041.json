@@ -1,0 +1,61 @@
+{
+  "case_id": "041",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "guild_id": 738757200780066839,
+    "channel_id": 852925615799009321,
+    "message_id": 1564588687939862528,
+    "jump_url": "https://discord.com/channels/738757200780066839/852925615799009321/1564588687939862528",
+    "author": "water200427",
+    "created_at": 1793097413.0419762
+  },
+  "initial_hint": "可能在案例39、40附近",
+  "hints": [
+    {
+      "time": 1793097413.0419798,
+      "message_id": 1564588687939862528,
+      "author": "water200427",
+      "text": "可能在案例39、40附近"
+    }
+  ],
+  "status": "resolved",
+  "resolved": true,
+  "discord_notified": false,
+  "images": [
+    "案件-041-Discord照片.jpg"
+  ],
+  "leading_candidate": {
+    "name": "和牛めんたい 神楽（かぐら）- 太宰府天満宮参道",
+    "maps_url": "https://maps.app.goo.gl/bwLpBZ6NX3gND8Ak6",
+    "confidence": "high",
+    "reason": "白色冰球表面帶有淡黃色果肉顆粒，完全吻合神樂太宰府店饕客評價極高之隱藏口直し『自家製レモンシャーベット（自家製檸檬雪酪）』；搭配日式厚陶小缽與特製波浪頸長柄甜點匙，做為吃完和牛與明太子御膳後之完美解膩甘味；與使用者『可能在案例39、40附近』之相簿脈絡完全契合。"
+  },
+  "price_estimation": {
+    "currency": "JPY",
+    "total_estimated": 0,
+    "details": [
+      {
+        "item": "自家製レモンシャーベット（自家製檸檬雪酪）",
+        "spec": "一口大小（御膳隨附口直し甘味）",
+        "price": 0,
+        "quantity": 1
+      }
+    ]
+  },
+  "guesses": [
+    {
+      "name": "和牛めんたい 神楽（かぐら）- 太宰府天満宮参道",
+      "maps_url": "https://maps.app.goo.gl/bwLpBZ6NX3gND8Ak6",
+      "confidence": "high"
+    },
+    {
+      "name": "銀しゃり焼肉 直球ホルモン 博多駅前店",
+      "maps_url": "https://maps.app.goo.gl/1w4XQ1H8j1u8cR9eA",
+      "confidence": "medium"
+    }
+  ],
+  "exclusions": [
+    "伽哩本舗 門司港レトロ店"
+  ]
+}
