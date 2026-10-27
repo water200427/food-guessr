@@ -17,6 +17,18 @@
       "message_id": 1564588687939862528,
       "author": "water200427",
       "text": "可能在案例39、40附近"
+    },
+    {
+      "time": 1793100000.0,
+      "message_id": 0,
+      "author": "user",
+      "text": "這是在「博多/天神/小倉」吃晚餐（例如和牛燒肉、牛腸鍋或日式料理）的附餐甜點"
+    },
+    {
+      "time": 1793108426.0,
+      "message_id": 0,
+      "author": "user",
+      "text": "是這家才對 https://maps.app.goo.gl/VozFYVDxwkYkTVhp8"
     }
   ],
   "status": "resolved",
@@ -26,36 +38,32 @@
     "案件-041-Discord照片.jpg"
   ],
   "leading_candidate": {
-    "name": "和牛めんたい 神楽（かぐら）- 太宰府天満宮参道",
-    "maps_url": "https://maps.app.goo.gl/bwLpBZ6NX3gND8Ak6",
+    "name": "焼肉 泰元（Yakiniku Taigen）",
+    "maps_url": "https://maps.app.goo.gl/VozFYVDxwkYkTVhp8",
     "confidence": "high",
-    "reason": "白色冰球表面帶有淡黃色果肉顆粒，完全吻合神樂太宰府店饕客評價極高之隱藏口直し『自家製レモンシャーベット（自家製檸檬雪酪）』；搭配日式厚陶小缽與特製波浪頸長柄甜點匙，做為吃完和牛與明太子御膳後之完美解膩甘味；與使用者『可能在案例39、40附近』之相簿脈絡完全契合。"
+    "reason": "使用者確認目標店家。白色雪酪中嵌有微黃天然柚子果皮顆粒，完全吻合泰元燒肉經典口直し甘味『ゆずシャーベット（385 円）』；日式厚白陶圓缽、S 彎折杯緣掛勾匙與琥珀木質燒肉桌板物證完全契合；完美對應旅客從門司港返回福岡市區後享用之鹿児島黑毛和牛燒肉晚餐。"
   },
   "price_estimation": {
     "currency": "JPY",
-    "total_estimated": 0,
+    "total_estimated": 385,
     "details": [
       {
-        "item": "自家製レモンシャーベット（自家製檸檬雪酪）",
-        "spec": "一口大小（御膳隨附口直し甘味）",
-        "price": 0,
+        "item": "ゆずシャーベット（柚子雪酪）",
+        "spec": "單球一口大小（含稅 385 円）",
+        "price": 385,
         "quantity": 1
       }
     ]
   },
   "guesses": [
     {
-      "name": "和牛めんたい 神楽（かぐら）- 太宰府天満宮参道",
-      "maps_url": "https://maps.app.goo.gl/bwLpBZ6NX3gND8Ak6",
+      "name": "焼肉 泰元",
+      "maps_url": "https://maps.app.goo.gl/VozFYVDxwkYkTVhp8",
       "confidence": "high"
-    },
-    {
-      "name": "銀しゃり焼肉 直球ホルモン 博多駅前店",
-      "maps_url": "https://maps.app.goo.gl/1w4XQ1H8j1u8cR9eA",
-      "confidence": "medium"
     }
   ],
   "exclusions": [
-    "伽哩本舗 門司港レトロ店"
+    "和牛めんたい 神楽（かぐら）- 太宰府天満宮参道",
+    "博多もつ鍋 おおやま"
   ]
 }
