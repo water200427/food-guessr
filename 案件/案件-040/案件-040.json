@@ -1,0 +1,51 @@
+{
+  "case_id": "040",
+  "case_title": "Discord 上傳照片辨識",
+  "source": "discord",
+  "discord_meta": {
+    "guild_id": 738757200780066839,
+    "channel_id": 852925615799009321,
+    "message_id": 1564488139869913158,
+    "jump_url": "https://discord.com/channels/738757200780066839/852925615799009321/1564488139869913158",
+    "author": "coldjoke",
+    "created_at": 1793073440.8573484
+  },
+  "initial_hint": null,
+  "hints": [],
+  "status": "resolved",
+  "resolved": true,
+  "discord_notified": false,
+  "images": [
+    "案件-040-Discord照片.jpg"
+  ],
+  "leading_candidate": {
+    "name": "伽哩本舗 門司港レトロ店",
+    "maps_url": "https://maps.app.goo.gl/73rcxSBtVZGa3WmN9",
+    "confidence": "high",
+    "reason": "黑色粗砂雙耳陶鍋、木隔熱墊、實木桌紋完全吻合；菜色為招牌『旬の野菜とトリプルミートの焼きカレー』（黑毛和牛、豬肉、雞肉三種肉搭配玉米與蔬菜焗烤）；左上角拍到該店極具代表性的卓上自家製『吻仔魚小魚干福神漬』（黑底紅邊漆器小盤托底的玻璃罐）。"
+  },
+  "price_estimation": {
+    "currency": "JPY",
+    "total_estimated": 1350,
+    "details": [
+      {
+        "item": "旬の野菜とトリプルミートの焼きカレー（當季蔬菜與三種肉類燒咖哩）",
+        "spec": "常規尺寸",
+        "price": 1350,
+        "quantity": 1
+      }
+    ]
+  },
+  "guesses": [
+    {
+      "name": "伽哩本舗 門司港レトロ店",
+      "maps_url": "https://maps.app.goo.gl/73rcxSBtVZGa3WmN9",
+      "confidence": "high"
+    }
+  ],
+  "exclusions": [
+    "BEAR FRUITS 門司港本店",
+    "こがねむし",
+    "王様のたまご"
+  ]
+}
