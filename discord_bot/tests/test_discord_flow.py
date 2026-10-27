@@ -693,5 +693,59 @@ class TestDiscordBotLogic(unittest.IsolatedAsyncioTestCase):
             case_manager.pending_price_requests_file = orig_reqs_file
             shutil.rmtree(test_dir, ignore_errors=True)
 
+    async def test_restart_command_permissions(self):
+        """測試 !restart 指令管理員權限防禦機制"""
+        from bot import client
+
+        class MockPermissions:
+            def __init__(self, admin=False):
+                self.administrator = admin
+
+        class MockAuthor:
+            def __init__(self, uid=888, is_bot=False, admin=False):
+                self.id = uid
+                self.bot = is_bot
+                self.mention = f"<@{uid}>"
+                self.guild_permissions = MockPermissions(admin=admin)
+
+        class MockGuild:
+            def __init__(self):
+                self.id = 111
+
+        class MockChannel:
+            def __init__(self):
+                self.id = 222
+
+        class MockDiscordMessage:
+            def __init__(self, content, author=None, guild=None):
+                self.id = 999
+                self.content = content
+                self.author = author or MockAuthor()
+                self.channel = MockChannel()
+                self.reference = None
+                self.guild = guild
+                self.mentions = []
+                self.attachments = []
+                self.replies = []
+
+            async def reply(self, content, mention_author=False, file=None):
+                self.replies.append(content)
+
+        # 1. 一般無管理員權限使用者嘗試重啟
+        non_admin_msg = MockDiscordMessage("!restart", author=MockAuthor(admin=False), guild=MockGuild())
+        await client.on_message(non_admin_msg)
+        self.assertEqual(len(non_admin_msg.replies), 1)
+        self.assertIn("權限不足", non_admin_msg.replies[0])
+
+        # 2. 伺服器管理員嘗試重啟 (Mock 掉 subprocess.Popen 防止單元測試觸發真實重啟)
+        import unittest.mock as mock
+        admin_author = MockAuthor(admin=True)
+        admin_msg = MockDiscordMessage("!restart", author=admin_author, guild=MockGuild())
+        with mock.patch("subprocess.Popen") as mock_popen:
+            await client.on_message(admin_msg)
+            self.assertEqual(len(admin_msg.replies), 1)
+            self.assertIn("收到重啟指令", admin_msg.replies[0])
+            self.assertTrue(mock_popen.called, "管理員觸發重啟時必須呼叫 subprocess.Popen")
+
 if __name__ == "__main__":
     unittest.main()

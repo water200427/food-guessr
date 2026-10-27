@@ -36,7 +36,8 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(line_buffering=True)
 
 # 設定專屬日誌檔案 (scratch/bot.log)
-LOG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scratch", "bot.log")
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+LOG_FILE_PATH = os.path.join(PROJECT_ROOT, "scratch", "bot.log")
 _orig_print = builtins.print
 
 def bot_print(*args, **kwargs):
@@ -1258,6 +1259,47 @@ async def on_message(message: discord.Message):
                 await message.reply(f"📋 目前共有 {len(active_cases)} 個疑難案件正在由 Antigravity 進行深度微型物證排查中：\n`{cases_str}`\n*(可輸入 `!log` 查看目前即時日誌)*", mention_author=False)
             else:
                 await message.reply("✨ 目前沒有任何排查中的案件，所有照片皆已結案！\n*(可在欲轉播的頻道輸入 `!setlogchannel` 開啟即時動態串流)*", mention_author=False)
+            return
+
+        # 5. 處理管理員重啟指令 (!restart, !reboot 或 @這哪家 restart)
+        if clean_content.startswith("!restart") or clean_content.startswith("!reboot") or (is_mentioned and ("restart" in clean_content or "reboot" in clean_content)):
+            is_admin = False
+            # 優先檢查伺服器管理員權限
+            if message.guild and getattr(message.author, "guild_permissions", None) and getattr(message.author.guild_permissions, "administrator", False):
+                is_admin = True
+            elif message.guild and getattr(message.guild, "owner_id", None) == message.author.id:
+                is_admin = True
+
+            # 備援檢查 Bot 應用程式擁有者
+            if not is_admin:
+                try:
+                    if await client.is_owner(message.author):
+                        is_admin = True
+                except Exception:
+                    pass
+
+            if not is_admin:
+                await message.reply("⚠️ **權限不足**：只有機器人管理員才可以使用重啟指令喔！🐾", mention_author=False)
+                return
+
+            await message.reply("🔄 **收到重啟指令！正在平滑重啟貓貓偵探...**\n即將重新載入最新程式碼與設定，請稍候片刻！🐾", mention_author=False)
+            print(f"[貓貓偵探 🔄] 收到來自 {message.author} 的重啟指令，準備執行平滑重啟...")
+
+            restart_script = os.path.join(PROJECT_ROOT, "scripts", "restart_bot.ps1")
+            if os.path.exists(restart_script):
+                try:
+                    subprocess.Popen(
+                        ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", restart_script],
+                        cwd=PROJECT_ROOT,
+                        creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+                    )
+                except Exception as e:
+                    print(f"[貓貓偵探 ⚠️] 呼叫 restart_bot.ps1 失敗: {e}")
+            else:
+                try:
+                    subprocess.Popen([sys.executable, "-u", os.path.join(PROJECT_ROOT, "discord_bot", "bot.py")], cwd=PROJECT_ROOT)
+                except Exception as e:
+                    print(f"[貓貓偵探 ⚠️] 備援重啟失敗: {e}")
             return
 
 def main():
